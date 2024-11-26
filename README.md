@@ -74,21 +74,52 @@ A versatile and offline-capable restaurant Point-of-Sale (POS) system designed f
 
 ```
 lib/
-├── core/
-│   ├── hive/                 // Hive setup and adapters
-│   ├── constants/            // App-wide constants
-│   ├── utils/                // Utility functions
-├── features/                 // Feature modules (menu, orders, billing, etc.)
-│   ├── menu/
-│   ├── orders/
+├── main.dart                 # Entry point of the app
+├── models/                   # Data models for the application
+│   ├── menu_item_model.dart  # Model for menu items
+│   └── user_model.dart       # Example user model
+├── pages/                    # Screens for the application
+│   ├── dashboard/            # Dashboard screen and components
+│   │   ├── dashboard_page.dart
+│   │   └── widgets/
 │   ├── billing/
+│   │   ├── billing_page.dart
+│   │   └── widgets/
 │   ├── inventory/
+│   │   ├── inventory_page.dart
+│   │   └── widgets/
+│   ├── orders/
+│   │   ├── orders_page.dart
+│   │   └── widgets/
+│   ├── products/
+│   │   ├── products_page.dart
+│   │   └── widgets/
 │   ├── reports/
-│   ├── user_management/
-├── shared/                   // Reusable components and themes
-├── services/                 // Shared services (auth, sync, notifications)
-├── routes/                   // Navigation logic
-├── main.dart                 // App entry point
+│   │   ├── reports_page.dart
+│   │   └── widgets/
+│   ├── settings/
+│   │   ├── settings_page.dart
+│   │   └── widgets/
+│   └── user_management/
+│       ├── user_management_page.dart
+│       └── widgets/
+├── providers/                # State management and data providers
+│   ├── menu_items_provider.dart
+│   ├── orders_provider.dart
+│   ├── inventory_provider.dart
+│   └── user_provider.dart
+├── widgets/                  # Shared widgets used across pages
+│   ├── add_items.dart
+│   ├── edit_menu_dialog.dart
+│   ├── header.dart
+│   └── edit_menu_dialog.dart
+├── utils/                    # Helper functions or constants
+│   ├── constants.dart
+│   └── hive_util.dart        # Hive database utilities
+└── services/                 # Service classes for data operations
+    ├── database_service.dart
+    └── network_service.dart  # (if applicable)
+
 ```
 
 ---

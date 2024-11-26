@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import 'const.dart';
+import 'utils/const.dart';
 import 'widget/side_menu.dart';
 
 

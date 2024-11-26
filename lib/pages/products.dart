@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import '../const.dart';
-import '../responsive.dart';
+import '../utils/const.dart';
+import '../utils/responsive.dart';
 import '../widget/add_items.dart';
 import '../widget/edit_menu_dialog.dart';
 

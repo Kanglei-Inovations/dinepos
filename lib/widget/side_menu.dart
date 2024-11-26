@@ -5,7 +5,7 @@ import 'package:dinepos/pages/inventory.dart';
 import 'package:dinepos/pages/products.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../const.dart';
+import '../utils/const.dart';
 import '../pages/reports.dart';
 import '../pages/settings.dart';
 import '../pages/user_management.dart';
