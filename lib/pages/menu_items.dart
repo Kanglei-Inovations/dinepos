@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import '../model/menuItem.dart';
+import '../provider/menu_items.dart';
 import '../utils/const.dart';
 import '../utils/responsive.dart';
 import '../widget/add_items.dart';
 import '../widget/edit_menu_dialog.dart';
+import 'package:provider/provider.dart'; // Make sure to import provider
 
 class MenuItemsScreen extends StatefulWidget {
   const MenuItemsScreen({super.key});
@@ -13,8 +17,15 @@ class MenuItemsScreen extends StatefulWidget {
 }
 
 class _MenuItemsScreenState extends State<MenuItemsScreen> {
-  final menuItemsBox = Hive.box('menu_items'); // Ensure this box is initialized in main.dart
   String searchQuery = '';
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final menuProvider = Provider.of<MenuItemsProvider>(context, listen: false);
+      menuProvider.loadMenuItems();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +34,7 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
         padding: const EdgeInsets.all(10.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Text(
               "Menu Items",
@@ -50,11 +62,10 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
                 ),
               ],
             ),
-            ValueListenableBuilder(
-              valueListenable: menuItemsBox.listenable(),
-              builder: (context, Box box, _) {
-                final menuItems = box.values.where((item) {
-                  final itemName = item['name'].toString().toLowerCase();
+            Consumer<MenuItemsProvider>(
+              builder: (context, menuProvider, _) {
+                final menuItems = menuProvider.menuItems.where((item) {
+                  final itemName = item.name.toLowerCase();
                   return itemName.contains(searchQuery.toLowerCase());
                 }).toList();
 
@@ -78,30 +89,77 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
                     ],
                     rows: List.generate(
                       menuItems.length,
-                          (index) => menuItemDataRow(menuItems[index], index, context),
+                          (index) => menuItemDataRow(menuItems[index], index, menuProvider, context),
                     ),
                   ),
                 );
               },
-            ),
+            )
+
+
           ],
         ),
       ),
     );
   }
 
-  DataRow menuItemDataRow(dynamic menuItem, int index, BuildContext context) {
+  // Pass menuProvider to the data row
+  DataRow menuItemDataRow(
+      MenuItem menuItem, int index, MenuItemsProvider menuProvider, BuildContext context) {
     return DataRow(
       cells: [
-        DataCell(Text(menuItem['name'])),
-        DataCell(Text('\$${menuItem['price']}')),
-        DataCell(menuItem['offerPrice'] != null && menuItem['offerPrice'] > 0
-            ? Text('\$${menuItem['offerPrice']}')
+        DataCell(
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  // Show enlarged image in a dialog
+                  showDialog(
+                    context: context,
+                    builder: (_) => Dialog(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          menuItem.imageUrl!.isNotEmpty
+                              ?Image.file(
+                            File(menuItem.imageUrl ?? 'https://via.placeholder.com/40'), // Use File class to load the local image
+                            fit: BoxFit.cover,
+                          ):Icon(Icons.fireplace),
+
+                          Text(
+                            menuItem.name,
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20), // Rounded corners
+                  child: menuItem.imageUrl!.isNotEmpty
+                  ?Image.file(
+                    File(menuItem.imageUrl ?? 'https://via.placeholder.com/40'), // Use File class to load the local image
+                    height: 40,
+                    width: 40,
+                    fit: BoxFit.cover,
+                  ):Icon(Icons.fireplace)
+
+                ),
+              ),
+              SizedBox(width: 8), // Space between the image and name
+              Text(menuItem.name),
+            ],
+          ),
+        ),
+        DataCell(Text('\$${menuItem.price}')),
+        DataCell(menuItem.offerPrice != null && menuItem.offerPrice > 0
+            ? Text('\$${menuItem.offerPrice}')
             : Text('-')),
-        DataCell(Text(menuItem['stock'].toString())),
-        DataCell(Text(menuItem['category'])),
+        DataCell(Text(menuItem.stock.toString())),
+        DataCell(Text(menuItem.category)),
         if (!Responsive.isMobile(context))
-          DataCell(Text(menuItem['subcategory'] ?? '-')),
+          DataCell(Text(menuItem.subCategory ?? '-')),
         DataCell(
           Row(
             children: [
@@ -111,13 +169,14 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
                   showDialog(
                     context: context,
                     builder: (context) => EditMenuItemDialog(
-                      id: index,
-                      name: menuItem['name'],
-                      price: menuItem['price'],
-                      offerPrice: menuItem['offerPrice'],
-                      stock: menuItem['stock'],
-                      category: menuItem['category'],
-                      subCategory: menuItem['subcategory'],
+                      id: menuItem.id,
+                      name: menuItem.name,
+                      price: menuItem.price,
+                      offerPrice: menuItem.offerPrice,
+                      stock: menuItem.stock,
+                      category: menuItem.category,
+                      subCategory: menuItem.subCategory,
+                      unitType: menuItem.unitType,
                     ),
                   ).then((_) => setState(() {})); // Refresh after editing
                 },
@@ -125,8 +184,9 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
               IconButton(
                 icon: Icon(Icons.delete, color: Colors.red),
                 onPressed: () {
-                  menuItemsBox.deleteAt(index);
-                  setState(() {});
+                  // Call deleteMenuItem from MenuProvider
+                  menuProvider.deleteMenuItem(menuItem.id);
+                  setState(() {}); // Refresh the UI after deletion
                 },
               ),
             ],
@@ -135,4 +195,5 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
       ],
     );
   }
+
 }

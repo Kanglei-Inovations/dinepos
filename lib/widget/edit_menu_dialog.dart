@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
+import '../provider/menu_items.dart'; // Import MenuProvider
 
 class EditMenuItemDialog extends StatefulWidget {
-  final int id; // The Hive index of the menu item
+  final String id; // The Hive index of the menu item
   final String name;
   final double price;
   final double? offerPrice;
   final int stock;
   final String category;
   final String? subCategory;
+  final String? unitType;
 
   const EditMenuItemDialog({
     super.key,
@@ -19,6 +22,7 @@ class EditMenuItemDialog extends StatefulWidget {
     required this.stock,
     required this.category,
     this.subCategory,
+    required this.unitType,
   });
 
   @override
@@ -33,6 +37,7 @@ class _EditMenuItemDialogState extends State<EditMenuItemDialog> {
   late int stock;
   late String category;
   String? subCategory;
+  late String unitType;
 
   @override
   void initState() {
@@ -43,22 +48,24 @@ class _EditMenuItemDialogState extends State<EditMenuItemDialog> {
     stock = widget.stock;
     category = widget.category;
     subCategory = widget.subCategory;
+    unitType = widget.unitType!;
   }
 
-  void _updateMenuItem() {
+  // Function to update the menu item via MenuProvider
+  void _updateMenuItem(MenuItemsProvider menuProvider) {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      final menuItemsBox = Hive.box('menu_items');
 
-      // Update the menu item
-      menuItemsBox.putAt(widget.id, {
-        'name': name,
-        'price': price,
-        'offerPrice': offerPrice,
-        'stock': stock,
-        'category': category,
-        'subcategory': subCategory,
-      });
+      // Update the menu item in the provider
+      menuProvider.updateMenuItem(
+        widget.id, // Use the id from the dialog parameter
+        name,
+        price,
+        offerPrice,
+        stock,
+        category,
+        subCategory,
+      );
 
       Navigator.of(context).pop(); // Close the dialog
     }
@@ -156,7 +163,11 @@ class _EditMenuItemDialogState extends State<EditMenuItemDialog> {
                       child: Text("Cancel"),
                     ),
                     ElevatedButton(
-                      onPressed: _updateMenuItem,
+                      onPressed: () {
+                        // Access MenuProvider using context and update the item
+                        final menuProvider = Provider.of<MenuItemsProvider>(context, listen: false);
+                        _updateMenuItem(menuProvider);
+                      },
                       child: Text("Update"),
                     ),
                   ],

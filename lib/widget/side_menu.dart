@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:dinepos/pages/billing.dart';
 import 'package:dinepos/pages/dashboard.dart';
 import 'package:dinepos/pages/inventory.dart';
-import 'package:dinepos/pages/products.dart';
+import 'package:dinepos/pages/menu_items.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../utils/const.dart';
@@ -30,8 +30,8 @@ class _SideMenuState extends State<SideMenu> {
   final List<Widget> _pages = [
     Dashboard(),
     Billing(),
-    MenuItemsScreen(),
     Inventory(),
+    MenuItemsScreen(),
     Reports(),
     UserManagement(),
     Settings(),
@@ -91,7 +91,7 @@ class _SideMenuState extends State<SideMenu> {
                     ),
                     ListTile(
                       leading: Icon(Icons.shopping_bag),
-                      title: Text('Purchase'),
+                      title: Text('Inventory'),
                       onTap: () => _onSelectPage(2),
                     ),
                     ListTile(

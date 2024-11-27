@@ -42,6 +42,8 @@ dependencies:
   http: ^1.2.2
   get:
   google_fonts: ^6.2.1
+  file_picker:
+  path_provider:
 
 
 
@@ -54,6 +56,8 @@ dev_dependencies:
     sdk: flutter
   build_runner: ^2.4.6
   logger: ^2.5.0
+  hive_generator:
+  flutter_launcher_icons:
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your

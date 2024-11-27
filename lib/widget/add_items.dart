@@ -1,8 +1,11 @@
+import 'dart:io';
+import 'dart:math';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../model/menuItem.dart';
-import '../provider/menuprovider.dart';
+import '../provider/menu_items.dart';
+import 'package:path_provider/path_provider.dart';
 
 class AddMenuItem extends StatefulWidget {
   @override
@@ -17,9 +20,15 @@ class _AddMenuItemState extends State<AddMenuItem> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _offerPriceController = TextEditingController();
   final TextEditingController _stockController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _imageUrlController = TextEditingController();
+
+  // Image picker related variables
+  File? _imageFile;
 
   String category = 'Vegetable'; // Default category
   String? subCategory; // Subcategory for non-vegetable items
+  String unitType = 'Full'; // Default unit type (Full)
 
   // Method to clear all fields
   void clearFields() {
@@ -27,9 +36,13 @@ class _AddMenuItemState extends State<AddMenuItem> {
     _priceController.clear();
     _offerPriceController.clear();
     _stockController.clear();
+    _descriptionController.clear();
+    _imageUrlController.clear();
     setState(() {
       category = 'Vegetable';
       subCategory = null;
+      unitType = 'Full'; // Reset unit type to default
+      _imageFile = null; // Reset image selection
     });
     _formKey.currentState?.reset();
   }
@@ -41,8 +54,66 @@ class _AddMenuItemState extends State<AddMenuItem> {
     _priceController.dispose();
     _offerPriceController.dispose();
     _stockController.dispose();
+    _descriptionController.dispose();
+    _imageUrlController.dispose();
     super.dispose();
   }
+  Future<Directory> getWritableDirectory() async {
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      // Use the user's home directory or a custom folder
+      final home = Directory.current;
+      return Directory('${home.path}/dbImage')..createSync(recursive: true);
+    } else {
+      // Use standard app document directory for mobile platforms
+      return getApplicationDocumentsDirectory();
+    }
+  }
+  // Method to pick an image from the gallery or camera
+  Future<void> _pickImage() async {
+    try {
+      // Pick an image file
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+      );
+
+      if (result != null) {
+        String? filePath = result.files.single.path;
+
+        if (filePath != null) {
+          final originalFile = File(filePath);
+
+          // Check if file exists
+          if (await originalFile.exists()) {
+            // Get writable directory based on platform
+            final directory = await getWritableDirectory();
+            final fileName = result.files.single.name;
+
+            // Construct the target path
+            final targetFilePath = '${directory.path}/$fileName';
+
+            // Copy the file to the target directory
+            final copiedFile = await originalFile.copy(targetFilePath);
+
+            // Update the state with the new file path
+            setState(() {
+              _imageFile = copiedFile;
+            });
+            print('File copied to: $targetFilePath');
+          } else {
+            throw Exception('File not found at path: $filePath');
+          }
+        } else {
+          throw Exception('Selected file path is null.');
+        }
+      } else {
+        print('No file selected.');
+      }
+    } catch (e) {
+      print('An error occurred while picking the file: $e');
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +136,29 @@ class _AddMenuItemState extends State<AddMenuItem> {
                   ],
                 ),
                 _buildNumberFormField('Stock', _stockController),
+                _buildTextFormField('Description', _descriptionController),
+
+                // Image Picker Section
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
+                    width: double.infinity,
+                    height: 150,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: _imageFile == null
+                        ? Center(child: Text("Tap to select an image"))
+                        : Image.file(
+                      _imageFile!,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 10),
+
+                // Category Dropdown
                 DropdownButtonFormField<String>(
                   value: category,
                   decoration: InputDecoration(labelText: 'Category'),
@@ -78,6 +172,7 @@ class _AddMenuItemState extends State<AddMenuItem> {
                     });
                   },
                 ),
+
                 if (category == 'Non-Vegetable') ...[
                   DropdownButtonFormField<String>(
                     value: subCategory,
@@ -98,34 +193,52 @@ class _AddMenuItemState extends State<AddMenuItem> {
                     },
                   ),
                 ],
+
+                // Unit Type Dropdown
+                DropdownButtonFormField<String>(
+                  value: unitType,
+                  decoration: InputDecoration(labelText: 'Unit Type'),
+                  items: ['Full', 'Half', 'Kg'].map((unit) {
+                    return DropdownMenuItem(value: unit, child: Text(unit));
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      unitType = value ?? 'Full';
+                    });
+                  },
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      final randomId = Random().nextInt(100000);  // Random ID between 0 and 999999
+                      final newMenuItem = MenuItem(
+                        id: randomId.toString(),
+                        name: _nameController.text,
+                        price: double.tryParse(_priceController.text) ?? 0.0,
+                        offerPrice: double.tryParse(_offerPriceController.text) ?? 0.0,
+                        stock: int.tryParse(_stockController.text) ?? 0,
+                        category: category,
+                        subCategory: subCategory,
+                        unitType: unitType,
+                        description: _descriptionController.text,
+                        imageUrl: _imageFile?.path ?? "", // Save the image path
+                      );
+
+                      // Get the MenuProvider from the context
+                      final menuProvider = Provider.of<MenuItemsProvider>(context, listen: false);
+                      menuProvider.addMenuItem(newMenuItem);
+                      clearFields(); // Clear fields without closing the dialog
+                    }
+                  },
+                  child: Text('Add Item'),
+                ),
               ],
             ),
           ),
         ),
       ),
       actions: [
-        ElevatedButton(
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              final newMenuItem = MenuItem(
-                id: DateTime.now().toString(),
-                name: _nameController.text,
-                price: double.tryParse(_priceController.text) ?? 0.0,
-                offerPrice: double.tryParse(_offerPriceController.text) ?? 0.0,
-                stock: int.tryParse(_stockController.text) ?? 0,
-                category: category,
-                subCategory: subCategory,
-              );
-
-              // Get the MenuProvider from the context
-              final menuProvider = Provider.of<MenuProvider>(context, listen: false);
-              menuProvider.addMenuItem(newMenuItem);
-
-              clearFields(); // Clear fields without closing the dialog
-            }
-          },
-          child: Text('Add Item'),
-        ),
         TextButton(
           onPressed: () {
             Navigator.of(context).pop(); // Close the dialog
