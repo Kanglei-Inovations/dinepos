@@ -14,7 +14,7 @@ void main() async {
   // Set a custom path for Hive data storage
   try {
     // Cross-platform storage path
-    var path = Directory.current.path + '/dinepos_data';
+    var path = Directory.current.path + '/dinepos_db';
     await Directory(path).create(recursive: true); // Ensure the directory exists
     Hive.init(path);
     Hive.registerAdapter(MenuItemAdapter());

@@ -5,7 +5,7 @@ part 'menuItem.g.dart'; // Make sure to run build_runner to generate the '.g.dar
 @HiveType(typeId: 0)
 class MenuItem {
   @HiveField(0)
-  final String id;
+  final int id; // Change id from String to int
 
   @HiveField(1)
   final String name;
@@ -29,13 +29,13 @@ class MenuItem {
   final String unitType;
 
   @HiveField(8)
-  final String? description; // New field for description
+  final String? description; // Optional description field
 
   @HiveField(9)
-  final String? imageUrl; // New field for image URL
+  final String imageUrl; // Make imageUrl required (no longer nullable)
 
   MenuItem({
-    required this.id,
+    required this.id, // id is now an int
     required this.name,
     required this.price,
     required this.offerPrice,
@@ -44,6 +44,6 @@ class MenuItem {
     this.subCategory,
     required this.unitType,
     this.description,
-    this.imageUrl,
+    required this.imageUrl, // imageUrl is required
   });
 }

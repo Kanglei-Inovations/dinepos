@@ -17,7 +17,7 @@ class MenuItemAdapter extends TypeAdapter<MenuItem> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return MenuItem(
-      id: fields[0] as String,
+      id: fields[0] as int,
       name: fields[1] as String,
       price: fields[2] as double,
       offerPrice: fields[3] as double,
@@ -26,7 +26,7 @@ class MenuItemAdapter extends TypeAdapter<MenuItem> {
       subCategory: fields[6] as String?,
       unitType: fields[7] as String,
       description: fields[8] as String?,
-      imageUrl: fields[9] as String?,
+      imageUrl: fields[9] as String,
     );
   }
 

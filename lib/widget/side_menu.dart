@@ -14,6 +14,9 @@ import '../pages/user_management.dart';
 class Responsive {
   static bool isDesktop(BuildContext context) =>
       MediaQuery.of(context).size.width >= 1024;
+
+  static bool isMobile(BuildContext context) =>
+      MediaQuery.of(context).size.width < 1024;
 }
 
 class SideMenu extends StatefulWidget {
@@ -49,9 +52,26 @@ class _SideMenuState extends State<SideMenu> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: Responsive.isMobile(context)
+          ? AppBar(
+        leading: Builder(
+          builder: (BuildContext context) {
+            return IconButton(
+              icon: Icon(Icons.menu),
+              onPressed: () {
+                Scaffold.of(context).openDrawer(); // Opens the drawer
+              },
+            );
+          },
+        ),
+        title: Text('DinePOS'),
+      )
+          : null, // No app bar on desktop, since we use a permanent drawer
 
       body: Row(
+
         children: [
+
           // Show Drawer as a permanent sidebar on desktop
           if (Responsive.isDesktop(context))
             Container(
@@ -66,7 +86,10 @@ class _SideMenuState extends State<SideMenu> {
                         children: [
                           Text(
                             'DinePOS',
-                            style: TextStyle(color: Colors.white, fontSize: 34, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 34,
+                                fontWeight: FontWeight.bold),
                           ),
                           Text(
                             'Billing and Management System',
@@ -79,41 +102,13 @@ class _SideMenuState extends State<SideMenu> {
                         ],
                       ),
                     ),
-                    ListTile(
-                      leading: Icon(Icons.home),
-                      title: Text('Dashboard'),
-                      onTap: () => _onSelectPage(0),
-                    ),
-                    ListTile(
-                      leading: Icon(Icons.shopping_cart),
-                      title: Text('Sale'),
-                      onTap: () => _onSelectPage(1),
-                    ),
-                    ListTile(
-                      leading: Icon(Icons.shopping_bag),
-                      title: Text('Inventory'),
-                      onTap: () => _onSelectPage(2),
-                    ),
-                    ListTile(
-                      leading: Icon(Icons.medical_services),
-                      title: Text('Items/Menu'),
-                      onTap: () => _onSelectPage(3),
-                    ),
-                    ListTile(
-                      leading: Icon(Icons.report),
-                      title: Text('Report'),
-                      onTap: () => _onSelectPage(4),
-                    ),
-                    ListTile(
-                      leading: Icon(Icons.sync),
-                      title: Text('UserMangement'),
-                      onTap: () => _onSelectPage(5),
-                    ),
-                    ListTile(
-                      leading: Icon(Icons.settings),
-                      title: Text('Settings'),
-                      onTap: () => _onSelectPage(6),
-                    ),
+                    _buildMenuItem(Icons.home, 'Dashboard', 0),
+                    _buildMenuItem(Icons.shopping_cart, 'Sale', 1),
+                    _buildMenuItem(Icons.shopping_bag, 'Inventory', 2),
+                    _buildMenuItem(Icons.local_dining, 'Items/Menu', 3),
+                    _buildMenuItem(Icons.report, 'Report', 4),
+                    _buildMenuItem(Icons.supervised_user_circle, 'UserManagement', 5),
+                    _buildMenuItem(Icons.settings, 'Settings', 6),
                   ],
                 ),
               ),
@@ -131,50 +126,73 @@ class _SideMenuState extends State<SideMenu> {
         ],
       ),
       // Show drawer as a collapsible menu only on mobile
-      drawer: Responsive.isDesktop(context) ? null : Drawer(
+      drawer: Responsive.isDesktop(context)
+          ? null
+          : Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(color: Colors.redAccent),
-              child: Text('Navigation', style: TextStyle(color: Colors.white, fontSize: 24)),
+              decoration: BoxDecoration(color: primaryColor),
+              child: Column(
+                children: [
+                  Text(
+                    'DinePOS',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 34,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    'Billing and Management System',
+                    style: TextStyle(color: Colors.white, fontSize: 10),
+                  ),
+                  Text(
+                    'By- KANGLEI INOVATIONS',
+                    style: TextStyle(color: Colors.white, fontSize: 10),
+                  ),
+                ],
+              ),
             ),
-            ListTile(
-              leading: Icon(Icons.home),
-              title: Text('Dashboard'),
-              onTap: () => _onSelectPage(0),
-            ),
-            ListTile(
-              leading: Icon(Icons.shopping_cart),
-              title: Text('Sale'),
-              onTap: () => _onSelectPage(1),
-            ),
-            ListTile(
-              leading: Icon(Icons.shopping_bag),
-              title: Text('Purchase'),
-              onTap: () => _onSelectPage(2),
-            ),
-            ListTile(
-              leading: Icon(Icons.medical_services),
-              title: Text('Items/Menu'),
-              onTap: () => _onSelectPage(3),
-            ),
-            ListTile(
-              leading: Icon(Icons.report),
-              title: Text('Report'),
-              onTap: () => _onSelectPage(4),
-            ),
-            ListTile(
-              leading: Icon(Icons.sync),
-              title: Text('UserManagement'),
-              onTap: () => _onSelectPage(5),
-            ),
-            ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Settings'),
-              onTap: () => _onSelectPage(6),
-            ),
+            _buildMenuItem(Icons.home, 'Dashboard', 0),
+            _buildMenuItem(Icons.shopping_cart, 'Sale', 1),
+            _buildMenuItem(Icons.shopping_bag, 'Inventory', 2),
+            _buildMenuItem(Icons.local_dining, 'Items/Menu', 3),
+            _buildMenuItem(Icons.report, 'Report', 4),
+            _buildMenuItem(Icons.supervised_user_circle, 'UserManagement', 5),
+            _buildMenuItem(Icons.settings, 'Settings', 6),
           ],
+        ),
+      ),
+    );
+  }
+
+  // Reusable method to build menu items with hover and active state decoration
+  Widget _buildMenuItem(IconData icon, String title, int index) {
+    return InkWell(
+      onTap: () => _onSelectPage(index),
+      child: MouseRegion(
+        onEnter: (_) => setState(() {}),
+        onExit: (_) => setState(() {}),
+        child: Container(
+          decoration: BoxDecoration(
+            color: _currentIndex == index
+                ? Colors.greenAccent.withOpacity(0.8) // Active color
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: ListTile(
+            leading: Icon(icon, color:_currentIndex == index ? Colors.white : Colors.greenAccent ,),
+            title: Text(
+              title,
+              style: TextStyle(
+                color: _currentIndex == index ? Colors.white : Colors.white,
+                fontWeight: _currentIndex == index
+                    ? FontWeight.bold
+                    : FontWeight.normal,
+              ),
+            ),
+          ),
         ),
       ),
     );
