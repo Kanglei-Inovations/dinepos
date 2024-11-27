@@ -114,15 +114,7 @@ class _SideMenuState extends State<SideMenu> {
               ),
             ),
           // Main content area
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(20.0), // Customize as needed
-                topRight: Radius.circular(20.0),
-              ),
-              child: _pages[_currentIndex],
-            ),
-          ),
+          _pages[_currentIndex],
         ],
       ),
       // Show drawer as a collapsible menu only on mobile

@@ -29,72 +29,77 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.red,
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-
-          children: [
-            Text(
-              "Menu Items",
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.end,
+    return Expanded(
+      child: Container(
+        color: secondaryColor,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+      
               children: [
-                ElevatedButton.icon(
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: defaultPadding * 1.5,
-                      vertical: defaultPadding / (Responsive.isMobile(context) ? 2 : 1),
+                Text(
+                  "Menu Items",
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton.icon(
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: defaultPadding * 1.5,
+                          vertical: defaultPadding / (Responsive.isMobile(context) ? 2 : 1),
+                        ),
+                      ),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AddMenuItem(),
+                        ).then((_) => setState(() {})); // Refresh after adding
+                      },
+                      icon: Icon(Icons.add),
+                      label: Text("Add Menu Item"),
                     ),
-                  ),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AddMenuItem(),
-                    ).then((_) => setState(() {})); // Refresh after adding
+                  ],
+                ),
+                Consumer<MenuItemsProvider>(
+                  builder: (context, menuProvider, _) {
+                    final menuItems = menuProvider.menuItems.where((item) {
+                      final itemName = item.name.toLowerCase();
+                      return itemName.contains(searchQuery.toLowerCase());
+                    }).toList();
+      
+                    if (menuItems.isEmpty) {
+                      return Center(child: Text("No menu items available"));
+                    }
+      
+                    return SizedBox(
+                      width: double.infinity,
+                      child: DataTable(
+                        columnSpacing: defaultPadding,
+                        columns: [
+                          DataColumn(label: Text("Name")),
+                          DataColumn(label: Text("Price/Offer")),
+                          DataColumn(label: Text("Stock")),
+                          DataColumn(label: Text("Category")),
+                          if (!Responsive.isMobile(context)) // Hide this column for mobile devices
+                            DataColumn(label: Text("Subcategory")),
+                          DataColumn(label: Text("Actions")),
+                        ],
+                        rows: List.generate(
+                          menuItems.length,
+                              (index) => menuItemDataRow(menuItems[index], index, menuProvider, context),
+                        ),
+                      ),
+                    );
                   },
-                  icon: Icon(Icons.add),
-                  label: Text("Add Menu Item"),
                 ),
               ],
             ),
-            Consumer<MenuItemsProvider>(
-              builder: (context, menuProvider, _) {
-                final menuItems = menuProvider.menuItems.where((item) {
-                  final itemName = item.name.toLowerCase();
-                  return itemName.contains(searchQuery.toLowerCase());
-                }).toList();
-
-                if (menuItems.isEmpty) {
-                  return Center(child: Text("No menu items available"));
-                }
-
-                return SizedBox(
-                  width: double.infinity,
-                  child: DataTable(
-                    columnSpacing: defaultPadding,
-                    columns: [
-                      DataColumn(label: Text("Name")),
-                      DataColumn(label: Text("Price/Offer")),
-                      DataColumn(label: Text("Stock")),
-                      DataColumn(label: Text("Category")),
-                      if (!Responsive.isMobile(context)) // Hide this column for mobile devices
-                        DataColumn(label: Text("Subcategory")),
-                      DataColumn(label: Text("Actions")),
-                    ],
-                    rows: List.generate(
-                      menuItems.length,
-                          (index) => menuItemDataRow(menuItems[index], index, menuProvider, context),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
+          ),
         ),
       ),
     );
