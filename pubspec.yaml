@@ -34,12 +34,12 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   flutter_local_notifications:
-#  connectivity_plus:
+  connectivity_plus:
   shared_preferences:
-  intl:
-  pdf:
-  printing:
-  http:
+  intl: 0.19.0
+  pdf: ^3.11.1
+  printing: ^5.13.4
+  http: ^1.2.2
   get:
   google_fonts: ^6.2.1
 
@@ -53,13 +53,13 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   build_runner: ^2.4.6
-  logger: ^1.1.0
+  logger: ^2.5.0
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

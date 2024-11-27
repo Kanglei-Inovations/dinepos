@@ -10,7 +10,7 @@ import 'widget/side_menu.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  MyApp();
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
