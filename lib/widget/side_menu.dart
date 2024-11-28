@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:dinepos/pages/billing.dart';
+import 'package:dinepos/pages/sale_billing.dart';
 import 'package:dinepos/pages/dashboard.dart';
 import 'package:dinepos/pages/inventory.dart';
 import 'package:dinepos/pages/menu_items.dart';
@@ -32,7 +32,7 @@ class _SideMenuState extends State<SideMenu> {
   // List of pages corresponding to each menu item
   final List<Widget> _pages = [
     Dashboard(),
-    Billing(),
+    SaleBilling(),
     Inventory(),
     MenuItemsScreen(),
     Reports(),
@@ -54,6 +54,7 @@ class _SideMenuState extends State<SideMenu> {
     return Scaffold(
       appBar: Responsive.isMobile(context)
           ? AppBar(
+          backgroundColor: primaryColor,
         leading: Builder(
           builder: (BuildContext context) {
             return IconButton(
@@ -69,13 +70,14 @@ class _SideMenuState extends State<SideMenu> {
           : null, // No app bar on desktop, since we use a permanent drawer
 
       body: Row(
-
+        mainAxisAlignment: MainAxisAlignment.spaceBetween, // Title on the left, button on the right
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
 
           // Show Drawer as a permanent sidebar on desktop
           if (Responsive.isDesktop(context))
             Container(
-              width: 250, // Fixed width for the side menu
+              width: 230, // Fixed width for the side menu
               child: Drawer(
                 child: ListView(
                   padding: EdgeInsets.zero,

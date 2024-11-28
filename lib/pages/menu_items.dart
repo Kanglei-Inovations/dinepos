@@ -30,74 +30,84 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Container(
-        color: secondaryColor,
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-      
-              children: [
-                Text(
-                  "Menu Items",
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    ElevatedButton.icon(
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: defaultPadding * 1.5,
-                          vertical: defaultPadding / (Responsive.isMobile(context) ? 2 : 1),
-                        ),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Container(
+          decoration: BoxDecoration(color: secondaryColor, borderRadius: BorderRadius.circular(10)),
+
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween, // Title on the left, button on the right
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Title on the left
+                      Text(
+                        "Menu Items",
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AddMenuItem(),
-                        ).then((_) => setState(() {})); // Refresh after adding
-                      },
-                      icon: Icon(Icons.add),
-                      label: Text("Add Menu Item"),
-                    ),
-                  ],
-                ),
-                Consumer<MenuItemsProvider>(
-                  builder: (context, menuProvider, _) {
-                    final menuItems = menuProvider.menuItems.where((item) {
-                      final itemName = item.name.toLowerCase();
-                      return itemName.contains(searchQuery.toLowerCase());
-                    }).toList();
-      
-                    if (menuItems.isEmpty) {
-                      return Center(child: Text("No menu items available"));
-                    }
-      
-                    return SizedBox(
-                      width: double.infinity,
-                      child: DataTable(
-                        columnSpacing: defaultPadding,
-                        columns: [
-                          DataColumn(label: Text("Name")),
-                          DataColumn(label: Text("Price/Offer")),
-                          DataColumn(label: Text("Stock")),
-                          DataColumn(label: Text("Category")),
-                          if (!Responsive.isMobile(context)) // Hide this column for mobile devices
-                            DataColumn(label: Text("Subcategory")),
-                          DataColumn(label: Text("Actions")),
-                        ],
-                        rows: List.generate(
-                          menuItems.length,
-                              (index) => menuItemDataRow(menuItems[index], index, menuProvider, context),
+
+                      // Button on the right
+                      ElevatedButton.icon(
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: defaultPadding * 1.5,
+                            vertical: defaultPadding / (Responsive.isMobile(context) ? 2 : 1),
+                          ),
                         ),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AddMenuItem(),
+                          ).then((_) => setState(() {})); // Refresh after adding
+                        },
+                        icon: Icon(Icons.add),
+                        label: Text("Add Menu Item"),
                       ),
-                    );
-                  },
-                ),
-              ],
+                    ],
+                  ),
+                  SizedBox(height: defaultPadding), // Add spacing between the title row and the content
+                  Consumer<MenuItemsProvider>(
+                    builder: (context, menuProvider, _) {
+                      final menuItems = menuProvider.menuItems.where((item) {
+                        final itemName = item.name.toLowerCase();
+                        return itemName.contains(searchQuery.toLowerCase());
+                      }).toList();
+
+                      if (menuItems.isEmpty) {
+                        return Center(child: Text("No menu items available"));
+                      }
+
+                      return SizedBox(
+                        width: double.infinity,
+                        child: DataTable(
+                          columnSpacing: defaultPadding,
+                          columns: [
+                            DataColumn(label: Text("Name")),
+                            DataColumn(label: Text("Price/Offer")),
+                            if (!Responsive.isMobile(context))
+                              DataColumn(label: Text("Stock")),
+                            DataColumn(label: Text("Category")),
+                            if (!Responsive.isMobile(context)) // Hide this column for mobile devices
+                              DataColumn(label: Text("Subcategory")),
+                            DataColumn(label: Text("Actions")),
+                          ],
+                          rows: List.generate(
+                            menuItems.length,
+                                (index) =>
+                                menuItemDataRow(menuItems[index], index, menuProvider, context),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+
             ),
           ),
         ),
@@ -110,6 +120,7 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
       MenuItem menuItem, int index, MenuItemsProvider menuProvider, BuildContext context) {
     return DataRow(
       cells: [
+        if (!Responsive.isMobile(context))
         DataCell(
           Row(
             children: [
@@ -129,6 +140,7 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
                           return Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                               // Hide this column for mobile devices
                               menuItem.imageUrl.isNotEmpty
                                   ? Image.file(
                                 File(menuItem.imageUrl ?? 'https://via.placeholder.com/40'),
@@ -139,7 +151,7 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
                                   : Icon(Icons.fireplace, size: imageSize), // Default icon if no image is available
 
                               SizedBox(height: 8), // Add some space between image and text
-
+                              // Hide this column for mobile devices
                               Text(
                                 menuItem.name,
                                 style: TextStyle(
@@ -177,7 +189,13 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
             ],
           ),
         ),
-
+        if (!Responsive.isDesktop(context))
+          DataCell(
+            Text(
+              menuItem.name,
+              style: TextStyle(fontSize: 14),
+            ),
+          ),
         DataCell(
           Responsive.isMobile(context)
               ? Column( // For mobile, use Column (stacked vertically)
@@ -195,9 +213,9 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
               // Show offer price in bold and green if available
               if (menuItem.offerPrice != null && menuItem.offerPrice > 0)
                 Text(
-                  '\$${menuItem.offerPrice}',
+                  '$Symbol ${menuItem.offerPrice}',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 16,
                     color: Colors.green, // Green color for offer price
                     fontWeight: FontWeight.bold, // Bold text for offer price
                   ),
@@ -205,7 +223,7 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
               // If no offer price, just display the normal price
               if (menuItem.offerPrice == null || menuItem.offerPrice <= 0)
                 Text(
-                  '\$${menuItem.price}',
+                  '$Symbol ${menuItem.price}',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.black, // Regular price in black
@@ -217,7 +235,7 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
             children: [
               if (menuItem.offerPrice != null && menuItem.offerPrice > 0)
                 Text(
-                  '\$${menuItem.price}',
+                  '$Symbol ${menuItem.price}',
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey, // Grey color for original price
@@ -229,7 +247,7 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
               // Show offer price in bold and green if available
               if (menuItem.offerPrice != null && menuItem.offerPrice > 0)
                 Text(
-                  '\$${menuItem.offerPrice}',
+                  '$Symbol ${menuItem.offerPrice}',
                   style: TextStyle(
                     fontSize: 18,
                     color: Colors.green, // Green color for offer price
@@ -239,7 +257,7 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
               // If no offer price, just display the normal price
               if (menuItem.offerPrice == null || menuItem.offerPrice <= 0)
                 Text(
-                  '\$${menuItem.price}',
+                  '$Symbol ${menuItem.price}',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.black, // Regular price in black
@@ -250,7 +268,7 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
         ),
 
 
-
+        if (!Responsive.isMobile(context))
         DataCell(
           Container(
             width: 60,// Use this on larger screens (tablet or desktop)
@@ -330,7 +348,7 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
                 onPressed: () {
                   // Call deleteMenuItem from MenuProvider
                   menuProvider.deleteMenuItem(menuItem.id);
-                  setState(() {}); // Refresh the UI after deletion
+                  setState(() {});
                 },
               ),
             ],

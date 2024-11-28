@@ -49,6 +49,7 @@ class _EditMenuItemDialogState extends State<EditMenuItemDialog> {
 
   @override
   void initState() {
+    print(widget.id);
     super.initState();
     name = widget.name;
     price = widget.price;
@@ -243,14 +244,7 @@ class _EditMenuItemDialogState extends State<EditMenuItemDialog> {
                       border: Border.all(color: Colors.grey),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: _imageFile == null
-                        ? (widget.imageUrl != null
-                        ? Image.network(widget.imageUrl!)  // Display remote image if URL is provided
-                        : Center(child: Text("Tap to Update an image")))
-                        : Image.file(
-                      _imageFile!,
-                      fit: BoxFit.cover,
-                    ),
+                    child: _widgetImage(_imageFile, widget.imageUrl),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -278,6 +272,32 @@ class _EditMenuItemDialogState extends State<EditMenuItemDialog> {
           ),
         ),
       ),
+    );
+  }
+}
+Widget _widgetImage(File? imageFile, String? imageUrl) {
+  print("imageFile:- $imageFile imageUrl:- $imageUrl");
+
+  // Check if imageFile is null or empty path
+  if (imageFile == null || imageFile.path.isEmpty) {
+    // Check if imageUrl is provided and valid
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      // Display remote image if URL is provided
+      return Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+      );
+    } else {
+      // Show placeholder text if no image or URL is available
+      return Center(
+        child: Text("Tap to Update an image"),
+      );
+    }
+  } else {
+    // Display local image file
+    return Image.file(
+      imageFile,
+      fit: BoxFit.cover,
     );
   }
 }

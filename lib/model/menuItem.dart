@@ -2,10 +2,10 @@ import 'package:hive/hive.dart';
 
 part 'menuItem.g.dart'; // Make sure to run build_runner to generate the '.g.dart' file
 
-@HiveType(typeId: 0)
+@HiveType(typeId: 2)
 class MenuItem {
   @HiveField(0)
-  final int id; // Change id from String to int
+  final int id; // id is an int
 
   @HiveField(1)
   final String name;
@@ -32,10 +32,13 @@ class MenuItem {
   final String? description; // Optional description field
 
   @HiveField(9)
-  final String imageUrl; // Make imageUrl required (no longer nullable)
+  final String imageUrl; // Required imageUrl
+
+  @HiveField(10)
+  int quantity; // Mutable quantity field to track the item count in invoices
 
   MenuItem({
-    required this.id, // id is now an int
+    required this.id,
     required this.name,
     required this.price,
     required this.offerPrice,
@@ -44,6 +47,17 @@ class MenuItem {
     this.subCategory,
     required this.unitType,
     this.description,
-    required this.imageUrl, // imageUrl is required
+    required this.imageUrl,
+    this.quantity = 0, // Default quantity is 0
   });
+
+  // Method to add quantity
+  void addQuantity(int value) {
+    quantity += value;
+  }
+
+  // Method to reset quantity
+  void resetQuantity() {
+    quantity = 0;
+  }
 }

@@ -8,7 +8,7 @@ part of 'menuItem.dart';
 
 class MenuItemAdapter extends TypeAdapter<MenuItem> {
   @override
-  final int typeId = 0;
+  final int typeId = 2;
 
   @override
   MenuItem read(BinaryReader reader) {
@@ -27,13 +27,14 @@ class MenuItemAdapter extends TypeAdapter<MenuItem> {
       unitType: fields[7] as String,
       description: fields[8] as String?,
       imageUrl: fields[9] as String,
+      quantity: fields[10] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, MenuItem obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -53,7 +54,9 @@ class MenuItemAdapter extends TypeAdapter<MenuItem> {
       ..writeByte(8)
       ..write(obj.description)
       ..writeByte(9)
-      ..write(obj.imageUrl);
+      ..write(obj.imageUrl)
+      ..writeByte(10)
+      ..write(obj.quantity);
   }
 
   @override
