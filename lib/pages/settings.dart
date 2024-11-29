@@ -148,7 +148,7 @@ class _SettingsState extends State<Settings> {
               icon: Icon(Icons.backup),
               label: Text('Backup Data'),
               style: ElevatedButton.styleFrom(
-                primary: Colors.teal,
+                backgroundColor: Colors.teal,
               ),
             ),
             SizedBox(height: 16),
@@ -157,7 +157,7 @@ class _SettingsState extends State<Settings> {
               icon: Icon(Icons.restore),
               label: Text('Restore Data'),
               style: ElevatedButton.styleFrom(
-                primary: Colors.teal,
+                backgroundColor: Colors.teal,
               ),
             ),
             SizedBox(height: 16),
