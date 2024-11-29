@@ -44,6 +44,8 @@ dependencies:
   google_fonts: ^6.2.1
   file_picker:
   path_provider:
+  badges: ^3.1.2
+  share_plus:
 
 
 

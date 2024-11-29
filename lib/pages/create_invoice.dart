@@ -1,13 +1,27 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:provider/provider.dart';
-
+import 'dart:math';
+import '../model/invoice_items_model.dart';
 import '../model/menuItem.dart';
 import '../provider/menu_items.dart';
 import '../utils/const.dart';
+import '../utils/responsive.dart';
+import '../widget/cart_items.dart';
+import '../widget/menu_gridview.dart';
+import '../widget/papercut_design.dart';
+import 'package:badges/badges.dart' as badges;
 
 class CreateInvoice extends StatefulWidget {
+  final String phone;
+  final String? name;
+  final String? address;
+
+  const CreateInvoice(
+      {super.key, required this.phone, this.name, this.address});
+
   @override
   _CreateInvoiceState createState() => _CreateInvoiceState();
 }
@@ -21,14 +35,30 @@ class _CreateInvoiceState extends State<CreateInvoice> {
   double taxAmount = 0.0;
   double total = 0.0;
   String searchQuery = '';
-  double amountPaid = 0.0; // Tracks the amount paid
-  String selectedPaymentType = 'Cash'; // Tracks the selected payment type
+  double amountPaid = 0.0;
+  String selectedPaymentType = 'Cash';
+
+  // Method to generate an invoice number based on the current time
+  String generateInvoiceNumber() {
+    const String prefix = "NAAZ";
+    // Get the current time
+    DateTime now = DateTime.now();
+
+    // Format the hour (24-hour format) and minute
+    String hour =
+        now.hour.toString().padLeft(2, '0'); // 24-hour format (e.g., 09, 14)
+    String minute =
+        now.minute.toString().padLeft(2, '0'); // Format minute (e.g., 01, 25)
+    // Combine into invoice number
+    return "$prefix$hour$minute";
+  }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final menuProvider = Provider.of<MenuItemsProvider>(context, listen: false);
+      final menuProvider =
+          Provider.of<MenuItemsProvider>(context, listen: false);
       menuProvider.loadMenuItems();
     });
   }
@@ -37,7 +67,7 @@ class _CreateInvoiceState extends State<CreateInvoice> {
     setState(() {
       subtotal = invoiceItems.fold(
         0,
-            (sum, item) => sum + item.price * item.quantity,
+        (sum, item) => sum + item.price * item.quantity,
       );
       afterDiscount = subtotal - discount;
       taxAmount = afterDiscount * (taxRate / 100);
@@ -47,49 +77,120 @@ class _CreateInvoiceState extends State<CreateInvoice> {
 
   void _addMenuItem(MenuItem menuItem) {
     setState(() {
-      final existingIndex = invoiceItems.indexWhere((item) => item.name == menuItem.name);
+      final existingIndex =
+          invoiceItems.indexWhere((item) => item.id == menuItem.id);
       if (existingIndex == -1) {
-        invoiceItems.add(MenuItem(
-          name: menuItem.name,
-          price: menuItem.price,
-          imageUrl: menuItem.imageUrl,
-          quantity: 1,
-          id: 1,
-          offerPrice: menuItem.offerPrice,
-          stock: menuItem.stock,
-          category: '',
-          unitType: '',
-        ));
+        invoiceItems.add(
+          MenuItem(
+            name: menuItem.name,
+            price: menuItem.price,
+            imageUrl: menuItem.imageUrl,
+            quantity: 1,
+            id: menuItem.id,
+            offerPrice: menuItem.offerPrice,
+            stock: menuItem.stock,
+            category: menuItem.category,
+            subCategory: menuItem.subCategory,
+            unitType: menuItem.unitType,
+          ),
+        );
       } else {
         invoiceItems[existingIndex].quantity += 1;
       }
       _calculateTotals();
+      _updateQty();
     });
   }
-// Function to submit invoice
+
+  void _removeMenuItem(MenuItem menuItem) {
+    setState(() {
+      final existingIndex =
+          invoiceItems.indexWhere((item) => item.id == menuItem.id);
+      if (existingIndex != -1) {
+        if (invoiceItems[existingIndex].quantity > 1) {
+          // Decrement quantity if greater than 1
+          invoiceItems[existingIndex].quantity -= 1;
+        } else {
+          // Remove item if quantity is 1
+          invoiceItems.removeAt(existingIndex);
+        }
+        _calculateTotals();
+        _updateQty();
+      }
+    });
+  }
+
   Future<void> _submitOrder() async {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Don not forget to Collect Payment'),
+        content: Text('Don\'t forget to collect payment.'),
         duration: Duration(seconds: 2),
       ),
     );
-    // Call provider method to save invoice in SQL database
-
-
+    // Save invoice logic here
   }
+
+  int qty = 0; // Quantity of items
+  void _updateQty() {
+    setState(() {
+      qty = invoiceItems.fold(0, (sum, item) => sum + item.quantity);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final Size size = MediaQuery.of(context).size;
+    bool isScreenBigger = size.width > 1000;
+    bool isScreenSmaller = size.width <= 1000;
+
     final menuProvider = Provider.of<MenuItemsProvider>(context);
-    final filteredMenuItems = menuProvider.menuItems.where((menuItem) {
-      return menuItem.name.toLowerCase().contains(searchQuery.toLowerCase());
+    final filteredMenuItems = menuProvider.menuItems
+        .where((menuItem) =>
+            menuItem.name.toLowerCase().contains(searchQuery.toLowerCase()))
+        .toList();
+    List<InvoiceItem> invoiceItemList = invoiceItems.map((menuItem) {
+      return InvoiceItem(
+        id: menuItem.id,
+        price: menuItem.price,
+        quantity: menuItem.quantity,
+        invoiceId: '',
+        itemName: menuItem.name,
+        total: menuItem.price * menuItem.quantity,
+      );
     }).toList();
 
     return Scaffold(
-
+      appBar: !Responsive.isTablet(context) && !Responsive.isDesktop(context)
+          ? AppBar(
+              title: Text('Dashboard'),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 20.0),
+                  child: badges.Badge(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CartItems(
+                              address: widget.address,
+                              name: widget.name,
+                              phone: widget.phone,
+                            ),
+                          ),
+                        );
+                      },
+                      showBadge: true,
+                      badgeContent: Text('${qty}'),
+                      child: Container(
+                        child: Icon(Icons.shopping_cart),
+                      ) // Empty container to overlay the badge on the image
+                      ),
+                )
+              ],
+            )
+          : null, // No AppBar for larger screens
       body: Row(
         children: [
-          // First row: Grid of menu items
           Expanded(
             flex: 2,
             child: Column(
@@ -97,6 +198,7 @@ class _CreateInvoiceState extends State<CreateInvoice> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextField(
+                    autofocus: true,
                     decoration: InputDecoration(
                       labelText: 'Search Menu Item',
                       border: OutlineInputBorder(),
@@ -109,310 +211,822 @@ class _CreateInvoiceState extends State<CreateInvoice> {
                   ),
                 ),
                 Expanded(
-                  child: GridView.builder(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
-                      childAspectRatio: 0.75,
-                    ),
-                    itemCount: filteredMenuItems.length,
-                    itemBuilder: (context, index) {
-                      final item = filteredMenuItems[index];
-                      return Card(
-                        elevation: 4,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              child: Image.file(
-                                File(item.imageUrl ?? 'https://via.placeholder.com/40'),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4.0),
-                              child: Text(item.name, style: TextStyle(fontWeight: FontWeight.bold)),
-                            ),
-                            Text('₹${item.price.toStringAsFixed(2)}'),
-                            ElevatedButton(
-                              onPressed: () => _addMenuItem(item),
-                              child: Text('Add to Cart'),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                  child: MenuScreen(
+                    invoiceItems: invoiceItemList,
+                    filteredMenuItems: filteredMenuItems,
+                    addMenuItem: _addMenuItem,
+                    removeMenuItem: _removeMenuItem,
                   ),
                 ),
               ],
             ),
           ),
-          // Second row: Invoice table
-          Expanded(
-            flex: 1,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                decoration: BoxDecoration(color: secondaryColor, borderRadius: BorderRadius.circular(15)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SingleChildScrollView(
-                      child: DataTable(
-                        columns: [
-                          DataColumn(label: Text('Product')),
-                          DataColumn(label: Text('Price')),
-                          DataColumn(label: Text('Qty')),
-                          DataColumn(label: Text('Total')),
-                        ],
-                        rows: invoiceItems.map((item) {
-                          return DataRow(cells: [
-                            DataCell(Text(item.name)),
-                            DataCell(Text('₹${item.price.toStringAsFixed(2)}')),
-                            DataCell(
-
-                              SizedBox(
-                                width: 60,
-                                child: TextFormField(
-                                  onChanged: (value) {
-                                    setState(() {
-                                      final newQty = int.tryParse(value) ?? 1;
-                                      item.quantity =
-                                      newQty > 0 ? newQty : 1; // Ensure quantity is at least 1
-                                      _calculateTotals(); // Recalculate totals when quantity changes
-                                    });
-                                  },
-                                  keyboardType: TextInputType.number,
-                                  controller: TextEditingController(text: item.quantity.toString()),
-                                  decoration: InputDecoration(
-                                    floatingLabelBehavior: FloatingLabelBehavior.auto, // Animates label
-                                    filled: true,
-                                    fillColor: secondary2Color, // Light background color
-
-                                    errorBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(30),
-                                      borderSide: BorderSide(
-                                        color: Colors.red, // Error border color
-                                      ),
-                                    ),
-                                    focusedErrorBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(30),
-                                      borderSide: BorderSide(
-                                        color: Colors.red, // Focused error border color
-                                        width: 2,
-                                      ),
-                                    ),
-
+          if (!Responsive.isMobile(context))
+            // Second row: Invoice table
+            Expanded(
+              flex: 1,
+              child: Padding(
+                padding: const EdgeInsets.all(1.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: secondaryColor,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2), // Shadow color
+                        blurRadius: 6, // How much the shadow is blurred
+                        offset: Offset(-4,
+                            0), // Shadow only on the left (negative X offset)
+                      ),
+                    ],
+                  ),
+                  child: StreamBuilder<Object>(
+                      stream: null,
+                      builder: (context, snapshot) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SingleChildScrollView(
+                              child: Card(
+                                color: Colors.white,
+                                margin: EdgeInsets.symmetric(vertical: 1.0),
+                                shape: RoundedRectangleBorder(
+                                  side: BorderSide(
+                                    color: secondaryColor, // Border color
+                                    // Border width
                                   ),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Please enter QTY';
-                                    }
-                                    if (!RegExp(r'^\d+$').hasMatch(value)) {
-                                      return 'Please enter only numbers';
-                                    }
-                                    return null;
-                                  },
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(
+                                        15), // Radius for the top-left corner
+                                    topRight: Radius.circular(
+                                        15), // Radius for the top-right corner
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Invoice Header
+                                    Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: Center(
+                                        child: Column(
+                                          children: [
+                                            Text(
+                                              "NAAZ RESTAURANT",
+                                              style: TextStyle(
+                                                fontSize: 24,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.brown,
+                                              ),
+                                            ),
+                                            SizedBox(height: 4),
+                                            Text(
+                                              "Lilong Bazar - 795135",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.grey[600],
+                                              ),
+                                            ),
+                                            SizedBox(height: 10),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    Divider(
+                                      thickness: 2,
+                                      color: Colors.grey[400],
+                                    ),
+                                    // Invoice to Details
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                "Invoice To:",
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                              SizedBox(height: 4),
+                                              Text(
+                                                "Name: ${widget.name}",
+                                                style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.black87),
+                                              ),
+                                              Text(
+                                                "Phone: ${widget.phone}",
+                                                style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.black87),
+                                              ),
+                                              Text(
+                                                "Address: ${widget.address}",
+                                                style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.black87),
+                                              ),
+                                            ],
+                                          ),
+                                          if (isScreenBigger)
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.end,
+                                              children: [
+                                                Text(
+                                                  "Invoice Number: ${generateInvoiceNumber()}",
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  "Date: ${DateTime.now().toString().split(' ')[0]}",
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.black87,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (isScreenSmaller)
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              " Invoice Number: ${generateInvoiceNumber()}",
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                            Text(
+                                              "Date: ${DateTime.now().toString().split(' ')[0]}",
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    // Divider Line
+                                    Divider(
+                                      thickness: 2,
+                                      color: Colors.grey[400],
+                                    ),
+
+                                    // Invoice Number and Date
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 8.0),
+                                      child: Text(
+                                        "Item List",
+                                        style: TextStyle(
+                                            color: Colors.black, fontSize: 14),
+                                      ),
+                                    ),
+                                    // Invoice Items
+                                    Padding(
+                                      padding:
+                                          const EdgeInsets.all(defaultPadding),
+                                      child: invoiceItems.isNotEmpty
+                                          ? Column(
+                                              children: invoiceItems
+                                                  .asMap()
+                                                  .entries
+                                                  .map((entry) {
+                                                int index =
+                                                    entry.key; // Get the index
+                                                var item =
+                                                    entry.value; // Get the item
+
+                                                return Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceEvenly,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.end,
+                                                  children: [
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            "(${index + 1}) ${item.name} - ${item.unitType}",
+                                                            style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                              color:
+                                                                  Colors.black,
+                                                            ),
+                                                          ),
+                                                          Text(
+                                                            "₹${item.price.toStringAsFixed(2)} x Qty ${item.quantity}",
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .black),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      "₹${(item.price * item.quantity).toStringAsFixed(2)}",
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.black,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                );
+                                              }).toList(),
+                                            )
+                                          : Center(
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(
+                                                    top: 80, bottom: 80),
+                                                child: Text(
+                                                  "No Items Added",
+                                                  style: TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                    ),
+
+                                    Divider(
+                                      thickness: 5,
+                                      color: Colors.white,
+                                    ),
+                                    Center(
+                                      child: Text(
+                                        "Tank You, Visit Again",
+                                        style: TextStyle(
+                                          color: Colors.grey[700],
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    Divider(
+                                      thickness: 10,
+                                      color: Colors.white,
+                                    ),
+                                    // Paper Cut Design
+                                    ClipPath(
+                                      clipper: PaperCutClipper(),
+                                      child: Container(
+                                        height: 10,
+                                        decoration: BoxDecoration(
+                                          color: secondaryColor,
+                                          border: Border.all(
+                                            color:
+                                                secondaryColor, // Border color
+                                            width: 1, // Border width
+                                          ),
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            "",
+                                            style: TextStyle(
+                                              color: Colors.grey[700],
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  ],
                                 ),
                               ),
                             ),
-                            DataCell(Text('₹${(item.price * item.quantity).toStringAsFixed(2)}')),
-                          ]);
-                        }).toList(),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end, // Align to the right
-                        children: [
-                          Card(
-                            elevation: 5,
-                            child: Container(
-                              width: 450, // Fixed width for consistent layout
-                              padding: EdgeInsets.all(8.0),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.blueGrey),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  ListTile(
-                                    title: Text('Subtotal'),
-                                    trailing: Text('₹${subtotal.toStringAsFixed(2)}'),
-                                  ),
-                                  ListTile(
-                                    title: TextField(
-                                      keyboardType: TextInputType.number,
-                                      textAlign: TextAlign.center,
-                                      decoration: InputDecoration(
-                                        isDense: true,
-                                        fillColor: secondary2Color,
-                                        filled: true,
-                                        contentPadding: EdgeInsets.symmetric(vertical: 16),
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                                          borderSide: BorderSide.none,
-                                        ),
-                                        labelText: 'Discount (₹)',
+
+                            // Padding(
+                            //   padding: const EdgeInsets.all(16.0),
+                            //   child: LayoutBuilder(
+                            //     builder: (context, constraints) {
+                            //       final isWideScreen = constraints.maxWidth > 800; // Adjust threshold as needed
+                            //       return Row(
+                            //         mainAxisAlignment: MainAxisAlignment.center, // Center the card on small screens
+                            //         children: [
+                            //           Expanded(
+                            //             flex: 1, // Take full width on smaller screens
+                            //             child: Card(
+                            //               elevation: 5,
+                            //               child: Container(
+                            //                 width: isWideScreen ? 450 : double.infinity, // Adjust width for smaller screens
+                            //                 padding: const EdgeInsets.all(8.0),
+                            //                 decoration: BoxDecoration(
+                            //                   border: Border.all(color: Colors.blueGrey),
+                            //                   borderRadius: BorderRadius.circular(8),
+                            //                 ),
+                            //                 child: Column(
+                            //                   crossAxisAlignment: CrossAxisAlignment.start,
+                            //                   children: [
+                            //                     ListTile(
+                            //                       title: Text('Subtotal'),
+                            //                       trailing: Text('₹${subtotal.toStringAsFixed(2)}'),
+                            //                     ),
+                            //                     ListTile(
+                            //                       title: TextField(
+                            //                         keyboardType: TextInputType.number,
+                            //                         textAlign: TextAlign.center,
+                            //                         decoration: InputDecoration(
+                            //                           isDense: true,
+                            //                           fillColor: secondary2Color,
+                            //                           filled: true,
+                            //                           contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                            //                           border: const OutlineInputBorder(
+                            //                             borderRadius: BorderRadius.all(Radius.circular(10)),
+                            //                             borderSide: BorderSide.none,
+                            //                           ),
+                            //                           labelText: 'Discount (₹)',
+                            //                         ),
+                            //                         onChanged: (value) {
+                            //                           setState(() {
+                            //                             discount = double.tryParse(value) ?? 0.0;
+                            //                             _calculateTotals();
+                            //                           });
+                            //                         },
+                            //                       ),
+                            //                       trailing: Text('After Dis: ₹${afterDiscount.toStringAsFixed(2)}'),
+                            //                     ),
+                            //                     ListTile(
+                            //                       title: TextField(
+                            //                         keyboardType: TextInputType.number,
+                            //                         textAlign: TextAlign.center,
+                            //                         decoration: InputDecoration(
+                            //                           isDense: true,
+                            //                           fillColor: secondary2Color,
+                            //                           filled: true,
+                            //                           contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                            //                           border: const OutlineInputBorder(
+                            //                             borderRadius: BorderRadius.all(Radius.circular(10)),
+                            //                             borderSide: BorderSide.none,
+                            //                           ),
+                            //                           labelText: 'Tax Rate (%)',
+                            //                         ),
+                            //                         onChanged: (value) {
+                            //                           setState(() {
+                            //                             taxRate = double.tryParse(value) ?? 0.0;
+                            //                             _calculateTotals();
+                            //                           });
+                            //                         },
+                            //                       ),
+                            //                       trailing: Column(
+                            //                         crossAxisAlignment: CrossAxisAlignment.end,
+                            //                         children: [
+                            //                           Text('Tax Amt: ₹${taxAmount.toStringAsFixed(2)}'),
+                            //                           Text(
+                            //                             'After Tax: ₹${total.toStringAsFixed(2)}',
+                            //                             style: const TextStyle(
+                            //                               color: Colors.greenAccent,
+                            //                               fontSize: 13,
+                            //                               fontWeight: FontWeight.bold,
+                            //                             ),
+                            //                           ),
+                            //                         ],
+                            //                       ),
+                            //                     ),
+                            //                     ListTile(
+                            //                       title: TextField(
+                            //                         keyboardType: TextInputType.number,
+                            //                         textAlign: TextAlign.center,
+                            //                         decoration: InputDecoration(
+                            //                           isDense: true,
+                            //                           fillColor: secondary2Color,
+                            //                           filled: true,
+                            //                           contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                            //                           border: const OutlineInputBorder(
+                            //                             borderRadius: BorderRadius.all(Radius.circular(10)),
+                            //                             borderSide: BorderSide.none,
+                            //                           ),
+                            //                           labelText: 'Paid Amt',
+                            //                         ),
+                            //                         onChanged: (value) {
+                            //                           setState(() {
+                            //                             amountPaid = double.tryParse(value) ?? 0.0;
+                            //                             _calculateTotals();
+                            //                           });
+                            //                         },
+                            //                       ),
+                            //                       trailing: Column(
+                            //                         crossAxisAlignment: CrossAxisAlignment.end,
+                            //                         children: [
+                            //                           const Text('Due Amt', style: TextStyle(fontWeight: FontWeight.bold)),
+                            //                           Text(
+                            //                             '₹${(total - amountPaid).toStringAsFixed(2)}',
+                            //                             style: const TextStyle(
+                            //                               color: Colors.redAccent,
+                            //                               fontSize: 20,
+                            //                               fontWeight: FontWeight.bold,
+                            //                             ),
+                            //                           ),
+                            //                         ],
+                            //                       ),
+                            //                     ),
+                            //                     const SizedBox(height: 10),
+                            //                     const Text(
+                            //                       'Payment Type:',
+                            //                       style: TextStyle(fontWeight: FontWeight.bold),
+                            //                     ),
+                            //                     Row(
+                            //                       mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Spread the icons evenly
+                            //                       children: [
+                            //                         Column(
+                            //                           children: [
+                            //                             IconButton(
+                            //                               icon: Icon(
+                            //                                 Icons.attach_money, // Icon for Cash
+                            //                                 color: selectedPaymentType == 'Cash' ? primaryColor : Colors.grey,
+                            //                               ),
+                            //                               onPressed: () {
+                            //                                 setState(() {
+                            //                                   selectedPaymentType = 'Cash';
+                            //                                 });
+                            //                               },
+                            //                               tooltip: 'Cash', // Tooltip for accessibility
+                            //                             ),
+                            //                             Text(
+                            //                               'CASH',
+                            //                               style: TextStyle(
+                            //                                 color: selectedPaymentType == 'Cash' ? primaryColor : Colors.grey,
+                            //                                 fontWeight: FontWeight.bold,
+                            //                               ),
+                            //                             ),
+                            //                           ],
+                            //                         ),
+                            //                         Column(
+                            //                           children: [
+                            //                             IconButton(
+                            //                               icon: Icon(
+                            //                                 Icons.qr_code, // Icon for UPI
+                            //                                 color: selectedPaymentType == 'UPI' ? primaryColor : Colors.grey,
+                            //                               ),
+                            //                               onPressed: () {
+                            //                                 setState(() {
+                            //                                   selectedPaymentType = 'UPI';
+                            //                                 });
+                            //                               },
+                            //                               tooltip: 'UPI', // Tooltip for accessibility
+                            //                             ),
+                            //                             Text(
+                            //                               'UPI',
+                            //                               style: TextStyle(
+                            //                                 color: selectedPaymentType == 'UPI' ? primaryColor : Colors.grey,
+                            //                                 fontWeight: FontWeight.bold,
+                            //                               ),
+                            //                             ),
+                            //                           ],
+                            //                         ),
+                            //                         Column(
+                            //                           children: [
+                            //                             IconButton(
+                            //                               icon: Icon(
+                            //                                 Icons.schedule, // Icon for Due
+                            //                                 color: selectedPaymentType == 'Due' ? primaryColor : Colors.grey,
+                            //                               ),
+                            //                               onPressed: () {
+                            //                                 setState(() {
+                            //                                   selectedPaymentType = 'Due';
+                            //                                 });
+                            //                               },
+                            //                               tooltip: 'Due', // Tooltip for accessibility
+                            //                             ),
+                            //                             Text(
+                            //                               'DUE',
+                            //                               style: TextStyle(
+                            //                                 color: selectedPaymentType == 'Due' ? primaryColor : Colors.grey,
+                            //                                 fontWeight: FontWeight.bold,
+                            //                               ),
+                            //                             ),
+                            //                           ],
+                            //                         ),
+                            //                       ],
+                            //                     )
+                            //
+                            //
+                            //                   ],
+                            //                 ),
+                            //               ),
+                            //             ),
+                            //           ),
+                            //         ],
+                            //       );
+                            //     },
+                            //   ),
+                            // ),
+                          ],
+                        );
+                      }),
+                ),
+              ),
+            ),
+        ],
+      ),
+      floatingActionButton: invoiceItems.isEmpty
+          ? null
+          : FloatingActionButton.extended(
+              elevation: 10,
+              onPressed: () {
+                // Show the confirmation alert dialog
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    final isWideScreen = MediaQuery.of(context).size.width >
+                        800; // Check screen width
+                    return AlertDialog(
+                      title: Text('Save Invoice'),
+                      content: SingleChildScrollView(
+                        // Add scroll for long content
+                        child: Center(
+                          child: SizedBox(
+                            width: isWideScreen
+                                ? 450
+                                : MediaQuery.of(context).size.width *
+                                    0.9, // Responsive width
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize:
+                                  MainAxisSize.min, // Avoid unnecessary height
+                              children: [
+                                // Subtotal Section
+                                ListTile(
+                                  title: Text('Subtotal'),
+                                  trailing:
+                                      Text('₹${subtotal.toStringAsFixed(2)}'),
+                                ),
+                                // Discount Input
+                                ListTile(
+                                  title: TextField(
+                                    keyboardType: TextInputType.number,
+                                    textAlign: TextAlign.center,
+                                    decoration: InputDecoration(
+                                      isDense: true,
+                                      fillColor: secondary2Color,
+                                      filled: true,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              vertical: 16),
+                                      border: const OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(10)),
+                                        borderSide: BorderSide.none,
                                       ),
-                                      onChanged: (value) {
-                                        setState(() {
-                                          discount = double.tryParse(value) ?? 0.0;
-                                          _calculateTotals();
-                                        });
-                                      },
+                                      labelText: 'Discount (₹)',
                                     ),
-                                    trailing: Text('After Dis: ₹${afterDiscount.toStringAsFixed(2)}'),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        discount =
+                                            double.tryParse(value) ?? 0.0;
+                                        _calculateTotals();
+                                      });
+                                    },
                                   ),
-                                  ListTile(
-                                    title: TextField(
-                                      keyboardType: TextInputType.number,
-                                      textAlign: TextAlign.center,
-                                      decoration: InputDecoration(
-                                        isDense: true,
-                                        fillColor: secondary2Color,
-                                        filled: true,
-                                        contentPadding: EdgeInsets.symmetric(vertical: 16),
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                                          borderSide: BorderSide.none,
-                                        ),
-                                        labelText: 'Tax Rate (%)',
+                                  trailing: Text(
+                                      'After Dis: ₹${afterDiscount.toStringAsFixed(2)}'),
+                                ),
+                                // Tax Rate Input
+                                ListTile(
+                                  title: TextField(
+                                    keyboardType: TextInputType.number,
+                                    textAlign: TextAlign.center,
+                                    decoration: InputDecoration(
+                                      isDense: true,
+                                      fillColor: secondary2Color,
+                                      filled: true,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              vertical: 16),
+                                      border: const OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(10)),
+                                        borderSide: BorderSide.none,
                                       ),
-                                      onChanged: (value) {
-                                        setState(() {
-                                          taxRate = double.tryParse(value) ?? 0.0;
-                                          _calculateTotals();
-                                        });
-                                      },
+                                      labelText: 'Tax Rate (%)',
                                     ),
-                                    trailing: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      children: [
-                                        Text('Tax Amount: ₹${taxAmount.toStringAsFixed(2)}'),
-                                        Text(
-                                          'After Tax: ₹${total.toStringAsFixed(2)}',
-                                          style: TextStyle(
-                                            color: Colors.greenAccent,
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        taxRate = double.tryParse(value) ?? 0.0;
+                                        _calculateTotals();
+                                      });
+                                    },
                                   ),
-                                  ListTile(
-                                    title: TextField(
-                                      keyboardType: TextInputType.number,
-                                      textAlign: TextAlign.center,
-                                      decoration: InputDecoration(
-                                        isDense: true,
-                                        fillColor: secondary2Color,
-                                        filled: true,
-                                        contentPadding: EdgeInsets.symmetric(vertical: 16),
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                                          borderSide: BorderSide.none,
-                                        ),
-                                        labelText: 'Paid Amount',
-                                      ),
-                                      onChanged: (value) {
-                                        setState(() {
-                                          amountPaid = double.tryParse(value) ?? 0.0;
-                                          _calculateTotals();
-                                        });
-                                      },
-                                    ),
-                                    trailing: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      children: [
-                                        Text('Amount Due:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                        Text(
-                                          '₹${(total - amountPaid).toStringAsFixed(2)}',
-                                          style: TextStyle(
-                                            color: Colors.redAccent,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  SizedBox(height: 10),
-                                  Text(
-                                    'Payment Type:',
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  trailing: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
-                                      Expanded(
-                                        child: RadioListTile(
-                                          title: Text('Cash'),
-                                          value: 'Cash',
-                                          groupValue: selectedPaymentType,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              selectedPaymentType = value!;
-                                            });
-                                          },
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: RadioListTile(
-                                          title: Text('UPI'),
-                                          value: 'UPI',
-                                          groupValue: selectedPaymentType,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              selectedPaymentType = value!;
-                                            });
-                                          },
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: RadioListTile(
-                                          title: Text('Due'),
-                                          value: 'Due',
-                                          groupValue: selectedPaymentType,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              selectedPaymentType = value!;
-                                            });
-                                          },
+                                      Text(
+                                          'Tax Amt: ₹${taxAmount.toStringAsFixed(2)}'),
+                                      Text(
+                                        'After Tax: ₹${total.toStringAsFixed(2)}',
+                                        style: const TextStyle(
+                                          color: Colors.greenAccent,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                     ],
                                   ),
-                                ],
-                              ),
+                                ),
+                                // Paid Amount Input
+                                ListTile(
+                                  title: TextField(
+                                    keyboardType: TextInputType.number,
+                                    textAlign: TextAlign.center,
+                                    decoration: InputDecoration(
+                                      isDense: true,
+                                      fillColor: secondary2Color,
+                                      filled: true,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              vertical: 16),
+                                      border: const OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(10)),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      labelText: 'Paid Amt',
+                                    ),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        amountPaid =
+                                            double.tryParse(value) ?? 0.0;
+                                        _calculateTotals();
+                                      });
+                                    },
+                                  ),
+                                  trailing: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      const Text('Due Amt',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold)),
+                                      Text(
+                                        '₹${(total - amountPaid).toStringAsFixed(2)}',
+                                        style: const TextStyle(
+                                          color: Colors.redAccent,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                // Payment Type Selection
+                                const SizedBox(height: 10),
+                                Text('Payment Type:',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment
+                                      .spaceEvenly, // Spread the icons evenly
+                                  children: [
+                                    Column(
+                                      children: [
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.attach_money, // Icon for Cash
+                                            color: selectedPaymentType == 'Cash'
+                                                ? primaryColor
+                                                : Colors.grey,
+                                          ),
+                                          onPressed: () {
+                                            setState(() {
+                                              selectedPaymentType = 'Cash';
+                                            });
+                                          },
+                                          tooltip:
+                                              'Cash', // Tooltip for accessibility
+                                        ),
+                                        Text(
+                                          'CASH',
+                                          style: TextStyle(
+                                            color: selectedPaymentType == 'Cash'
+                                                ? primaryColor
+                                                : Colors.grey,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Column(
+                                      children: [
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.qr_code, // Icon for UPI
+                                            color: selectedPaymentType == 'UPI'
+                                                ? primaryColor
+                                                : Colors.grey,
+                                          ),
+                                          onPressed: () {
+                                            setState(() {
+                                              selectedPaymentType = 'UPI';
+                                            });
+                                          },
+                                          tooltip:
+                                              'UPI', // Tooltip for accessibility
+                                        ),
+                                        Text(
+                                          'UPI',
+                                          style: TextStyle(
+                                            color: selectedPaymentType == 'UPI'
+                                                ? primaryColor
+                                                : Colors.grey,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Column(
+                                      children: [
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.schedule, // Icon for Due
+                                            color: selectedPaymentType == 'Due'
+                                                ? primaryColor
+                                                : Colors.grey,
+                                          ),
+                                          onPressed: () {
+                                            setState(() {
+                                              selectedPaymentType = 'Due';
+                                            });
+                                          },
+                                          tooltip:
+                                              'Due', // Tooltip for accessibility
+                                        ),
+                                        Text(
+                                          'DUE',
+                                          style: TextStyle(
+                                            color: selectedPaymentType == 'Due'
+                                                ? primaryColor
+                                                : Colors.grey,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                )
+                              ],
                             ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-
-                  ],
-                ),
-              ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            // Close the dialog
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('Cancel',
+                              style: TextStyle(color: Colors.red)),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            // Call the function to save the invoice
+                            _submitOrder();
+                            // Close the dialog
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('Save'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+              label: Text('Save Invoice'),
+              icon: Icon(Icons.save),
+              backgroundColor: primaryColor,
+              tooltip: 'Save invoice to database',
             ),
-          ),
-
-
-        ],
-
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        elevation: 10,
-        onPressed: _submitOrder, // Submit Order function
-        label: Text('Save Sell'), // Adds label text to the button
-        icon: Icon(Icons.arrow_forward),
-        backgroundColor: primaryColor,
-        tooltip: 'Save invoice to Database', // Detailed tooltip
-      ),
     );
   }
 }

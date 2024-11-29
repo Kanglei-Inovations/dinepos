@@ -31,22 +31,42 @@ class _AddCustomerState extends State<AddCustomer> {
     return AlertDialog(
       backgroundColor: secondaryColor,
       shadowColor: bgColor,
-      title: Text('Add Customer', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
-      content : SingleChildScrollView(
+      title: Text(
+        'Add Customer',
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      ),
+      content: SingleChildScrollView(
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildTextFormField('Customer Name', Icons.person, _nameController),
-              _buildTextFormField('Phone', Icons.phone, _phoneController, isNumber: true),
-               _buildTextFormField('Address', Icons.home, _addressController, isMultiline: true),
+              _buildTextFormField(
+                'Phone',
+                Icons.phone,
+                _phoneController,
+                isNumber: true,
+              ),
+              _buildTextFormField(
+                'Customer Name',
+                Icons.person,
+                _nameController,
+                isOptional: true, // Make optional
+              ),
+              _buildTextFormField(
+                'Address',
+                Icons.home,
+                _addressController,
+                isOptional: true, // Make optional
+              ),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     // Navigate to InvoiceMaking page with customer details
-                    Get.to(() => CreateInvoice(), arguments: {
+                    Get.to(() => CreateInvoice(name: _nameController.text,
+                      phone: _phoneController.text,
+                      address: _addressController.text,), arguments: {
                       'name': _nameController.text,
                       'phone': _phoneController.text,
                       'address': _addressController.text,
@@ -63,64 +83,39 @@ class _AddCustomerState extends State<AddCustomer> {
   }
 
   // Helper method to build a text form field
-  Widget _buildTextFormField(String label, IconData icon, TextEditingController controller,
-      {bool isNumber = false, bool isEmail = false, bool isMultiline = false}) {
+  Widget _buildTextFormField(
+      String label,
+      IconData icon,
+      TextEditingController controller, {
+        bool isNumber = false,
+        bool isOptional = false,
+        bool autofocus = true, // New parameter
+      }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
         controller: controller,
-        keyboardType: isNumber
-            ? TextInputType.phone
-            : isEmail
-            ? TextInputType.emailAddress
-            : isMultiline
-            ? TextInputType.multiline
-            : TextInputType.text,
-        maxLines: isMultiline ? null : 1,
+        keyboardType: isNumber ? TextInputType.phone : TextInputType.text,
+        autofocus: autofocus, // Apply autofocus
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon),
           border: OutlineInputBorder(),
         ),
         validator: (value) {
-          if (value == null || value.isEmpty) {
+          if (!isOptional && (value == null || value.isEmpty)) {
             return 'Please enter $label';
           }
-          if (isEmail && !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-            return 'Please enter a valid email address';
-          }
-          if (isNumber && !RegExp(r'^[0-9]+$').hasMatch(value)) {
-            return 'Please enter a valid phone number';
+          if (isNumber &&
+              value != null &&
+              value.isNotEmpty &&
+              !RegExp(r'^[0-9]+$').hasMatch(value)) {
+            return 'Enter a valid phone number';
           }
           return null;
         },
       ),
     );
   }
-}
 
-class InvoiceMakingPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final customerDetails = Get.arguments as Map<String, String>;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Invoice Making'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Customer Name: ${customerDetails['name']}'),
-            Text('Phone: ${customerDetails['phone']}'),
-            Text('Email: ${customerDetails['email']}'),
-            Text('Address: ${customerDetails['address']}'),
-            // Add your invoice-making functionality here
-          ],
-        ),
-      ),
-    );
-  }
 }
