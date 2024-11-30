@@ -164,18 +164,25 @@ class _CreateInvoiceState extends State<CreateInvoice> {
           ? AppBar(
               title: Text('Dashboard'),
               actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 20.0),
-                  child: badges.Badge(
-                      onTap: () {
-                        _openBottomSheet(context);
-                      },
-                      showBadge: true,
-                      badgeContent: Text('${qty}'),
-                      child: Container(
-                        child: Icon(Icons.shopping_cart),
-                      ) // Empty container to overlay the badge on the image
-                      ),
+                InkWell(
+                  onTap: (){
+                    _openBottomSheet(context);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 20.0),
+                    child: badges.Badge(
+                        onTap: () {
+                          _openBottomSheet(context);
+                        },
+                        showBadge: true,
+                        badgeContent: Text('${qty}'),
+
+                          child: Container(
+                            child: Icon(Icons.shopping_cart,size: 50),
+                          ),
+                         // Empty container to overlay the badge on the image
+                        ),
+                  ),
                 )
               ],
             )
@@ -189,7 +196,7 @@ class _CreateInvoiceState extends State<CreateInvoice> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextField(
-                    autofocus: true,
+                    // autofocus: true,
                     decoration: InputDecoration(
                       labelText: 'Search Menu Item',
                       border: OutlineInputBorder(),
@@ -1026,14 +1033,15 @@ class _CreateInvoiceState extends State<CreateInvoice> {
   void _openBottomSheet(BuildContext context) {
     showModalBottomSheet(
       backgroundColor: Colors.transparent,
-      isDismissible: true,
       enableDrag: true,
+      isDismissible:true,
+      scrollControlDisabledMaxHeightRatio: 10,
       isScrollControlled: true,
       context: context,
       builder: (BuildContext context) {
         return Container(
           padding: EdgeInsets.all(20),
-          height: MediaQuery.of(context).size.height,
+          // height: MediaQuery.of(context).size.height,
           child: SingleChildScrollView(
             scrollDirection: Axis.vertical,
             child: Padding(
@@ -1313,231 +1321,12 @@ class _CreateInvoiceState extends State<CreateInvoice> {
                                       ),
                                     ),
                                   ),
-                                  SizedBox(
-                                    height: 50,
-                                  ),
+
                                 ],
                               ),
                             ),
                           ),
-                    
-                          // Expanded(
-                          //   child: Padding(
-                          //     padding: const EdgeInsets.all(16.0),
-                          //     child: LayoutBuilder(
-                          //       builder: (context, constraints) {
-                          //         final isWideScreen = constraints.maxWidth > 800; // Adjust threshold as needed
-                          //         return Row(
-                          //           mainAxisAlignment: MainAxisAlignment.center, // Center the card on small screens
-                          //           children: [
-                          //             Expanded(
-                          //               flex: 1, // Take full width on smaller screens
-                          //               child: Card(
-                          //                 elevation: 5,
-                          //                 child: Container(
-                          //                   width: isWideScreen ? 450 : double.infinity, // Adjust width for smaller screens
-                          //                   padding: const EdgeInsets.all(8.0),
-                          //                   decoration: BoxDecoration(
-                          //                     border: Border.all(color: Colors.blueGrey),
-                          //                     borderRadius: BorderRadius.circular(8),
-                          //                   ),
-                          //                   child: Column(
-                          //                     crossAxisAlignment: CrossAxisAlignment.start,
-                          //                     children: [
-                          //                       ListTile(
-                          //                         title: Text('Subtotal'),
-                          //                         trailing: Text('₹${subtotal.toStringAsFixed(2)}'),
-                          //                       ),
-                          //                       ListTile(
-                          //                         title: TextField(
-                          //                           keyboardType: TextInputType.number,
-                          //                           textAlign: TextAlign.center,
-                          //                           decoration: InputDecoration(
-                          //                             isDense: true,
-                          //                             fillColor: secondary2Color,
-                          //                             filled: true,
-                          //                             contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                          //                             border: const OutlineInputBorder(
-                          //                               borderRadius: BorderRadius.all(Radius.circular(10)),
-                          //                               borderSide: BorderSide.none,
-                          //                             ),
-                          //                             labelText: 'Discount (₹)',
-                          //                           ),
-                          //                           onChanged: (value) {
-                          //                             setState(() {
-                          //                               discount = double.tryParse(value) ?? 0.0;
-                          //                               _calculateTotals();
-                          //                             });
-                          //                           },
-                          //                         ),
-                          //                         trailing: Text('After Dis: ₹${afterDiscount.toStringAsFixed(2)}'),
-                          //                       ),
-                          //                       ListTile(
-                          //                         title: TextField(
-                          //                           keyboardType: TextInputType.number,
-                          //                           textAlign: TextAlign.center,
-                          //                           decoration: InputDecoration(
-                          //                             isDense: true,
-                          //                             fillColor: secondary2Color,
-                          //                             filled: true,
-                          //                             contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                          //                             border: const OutlineInputBorder(
-                          //                               borderRadius: BorderRadius.all(Radius.circular(10)),
-                          //                               borderSide: BorderSide.none,
-                          //                             ),
-                          //                             labelText: 'Tax Rate (%)',
-                          //                           ),
-                          //                           onChanged: (value) {
-                          //                             setState(() {
-                          //                               taxRate = double.tryParse(value) ?? 0.0;
-                          //                               _calculateTotals();
-                          //                             });
-                          //                           },
-                          //                         ),
-                          //                         trailing: Column(
-                          //                           crossAxisAlignment: CrossAxisAlignment.end,
-                          //                           children: [
-                          //                             Text('Tax Amt: ₹${taxAmount.toStringAsFixed(2)}'),
-                          //                             Text(
-                          //                               'After Tax: ₹${total.toStringAsFixed(2)}',
-                          //                               style: const TextStyle(
-                          //                                 color: Colors.greenAccent,
-                          //                                 fontSize: 13,
-                          //                                 fontWeight: FontWeight.bold,
-                          //                               ),
-                          //                             ),
-                          //                           ],
-                          //                         ),
-                          //                       ),
-                          //                       ListTile(
-                          //                         title: TextField(
-                          //                           keyboardType: TextInputType.number,
-                          //                           textAlign: TextAlign.center,
-                          //                           decoration: InputDecoration(
-                          //                             isDense: true,
-                          //                             fillColor: secondary2Color,
-                          //                             filled: true,
-                          //                             contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                          //                             border: const OutlineInputBorder(
-                          //                               borderRadius: BorderRadius.all(Radius.circular(10)),
-                          //                               borderSide: BorderSide.none,
-                          //                             ),
-                          //                             labelText: 'Paid Amt',
-                          //                           ),
-                          //                           onChanged: (value) {
-                          //                             setState(() {
-                          //                               amountPaid = double.tryParse(value) ?? 0.0;
-                          //                               _calculateTotals();
-                          //                             });
-                          //                           },
-                          //                         ),
-                          //                         trailing: Column(
-                          //                           crossAxisAlignment: CrossAxisAlignment.end,
-                          //                           children: [
-                          //                             const Text('Due Amt', style: TextStyle(fontWeight: FontWeight.bold)),
-                          //                             Text(
-                          //                               '₹${(total - amountPaid).toStringAsFixed(2)}',
-                          //                               style: const TextStyle(
-                          //                                 color: Colors.redAccent,
-                          //                                 fontSize: 20,
-                          //                                 fontWeight: FontWeight.bold,
-                          //                               ),
-                          //                             ),
-                          //                           ],
-                          //                         ),
-                          //                       ),
-                          //                       const SizedBox(height: 10),
-                          //                       const Text(
-                          //                         'Payment Type:',
-                          //                         style: TextStyle(fontWeight: FontWeight.bold),
-                          //                       ),
-                          //                       Row(
-                          //                         mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Spread the icons evenly
-                          //                         children: [
-                          //                           Column(
-                          //                             children: [
-                          //                               IconButton(
-                          //                                 icon: Icon(
-                          //                                   Icons.attach_money, // Icon for Cash
-                          //                                   color: selectedPaymentType == 'Cash' ? primaryColor : Colors.grey,
-                          //                                 ),
-                          //                                 onPressed: () {
-                          //                                   setState(() {
-                          //                                     selectedPaymentType = 'Cash';
-                          //                                   });
-                          //                                 },
-                          //                                 tooltip: 'Cash', // Tooltip for accessibility
-                          //                               ),
-                          //                               Text(
-                          //                                 'CASH',
-                          //                                 style: TextStyle(
-                          //                                   color: selectedPaymentType == 'Cash' ? primaryColor : Colors.grey,
-                          //                                   fontWeight: FontWeight.bold,
-                          //                                 ),
-                          //                               ),
-                          //                             ],
-                          //                           ),
-                          //                           Column(
-                          //                             children: [
-                          //                               IconButton(
-                          //                                 icon: Icon(
-                          //                                   Icons.qr_code, // Icon for UPI
-                          //                                   color: selectedPaymentType == 'UPI' ? primaryColor : Colors.grey,
-                          //                                 ),
-                          //                                 onPressed: () {
-                          //                                   setState(() {
-                          //                                     selectedPaymentType = 'UPI';
-                          //                                   });
-                          //                                 },
-                          //                                 tooltip: 'UPI', // Tooltip for accessibility
-                          //                               ),
-                          //                               Text(
-                          //                                 'UPI',
-                          //                                 style: TextStyle(
-                          //                                   color: selectedPaymentType == 'UPI' ? primaryColor : Colors.grey,
-                          //                                   fontWeight: FontWeight.bold,
-                          //                                 ),
-                          //                               ),
-                          //                             ],
-                          //                           ),
-                          //                           Column(
-                          //                             children: [
-                          //                               IconButton(
-                          //                                 icon: Icon(
-                          //                                   Icons.schedule, // Icon for Due
-                          //                                   color: selectedPaymentType == 'Due' ? primaryColor : Colors.grey,
-                          //                                 ),
-                          //                                 onPressed: () {
-                          //                                   setState(() {
-                          //                                     selectedPaymentType = 'Due';
-                          //                                   });
-                          //                                 },
-                          //                                 tooltip: 'Due', // Tooltip for accessibility
-                          //                               ),
-                          //                               Text(
-                          //                                 'DUE',
-                          //                                 style: TextStyle(
-                          //                                   color: selectedPaymentType == 'Due' ? primaryColor : Colors.grey,
-                          //                                   fontWeight: FontWeight.bold,
-                          //                                 ),
-                          //                               ),
-                          //                             ],
-                          //                           ),
-                          //                         ],
-                          //                       )
-                          //
-                          //
-                          //                     ],
-                          //                   ),
-                          //                 ),
-                          //               ),
-                          //             ),
-                          //           ],
-                          //         );
-                          //       },
-                          //     ),
-                          //   ),
-                          // ),
+
                         ],
                       );
                     }),
