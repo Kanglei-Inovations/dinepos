@@ -54,4 +54,40 @@ class Invoice {
     required this.paymentType,
     required this.createdAt,
   });
+
+  // FromJson constructor to handle null values in parsing
+  factory Invoice.fromJson(Map<String, dynamic> json) {
+    return Invoice(
+      id: json['id'] ?? 0,  // Default to 0 if id is null
+      userId: json['userId'] ?? '',  // Default to empty string if null
+      name: json['name'] ?? '',
+      phone: json['phone'] ?? '',
+      address: json['address'] ?? '',
+      status: json['status'] ?? '',
+      subtotal: json['subtotal']?.toDouble() ?? 0.0,
+      discount: json['discount']?.toDouble() ?? 0.0,
+      taxRate: json['taxRate']?.toDouble() ?? 0.0,
+      amountPaid: json['amountPaid']?.toDouble() ?? 0.0,
+      paymentType: json['paymentType'] ?? '',
+      createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
+    );
+  }
+
+  /// Method to convert an `Invoice` object to a JSON map.
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'userId': userId,
+      'name': name,
+      'phone': phone,
+      'address': address,
+      'status': status,
+      'subtotal': subtotal,
+      'discount': discount,
+      'taxRate': taxRate,
+      'amountPaid': amountPaid,
+      'paymentType': paymentType,
+      'createdAt': createdAt.toIso8601String(),
+    };
+  }
 }

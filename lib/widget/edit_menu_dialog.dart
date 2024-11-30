@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import '../provider/menu_items.dart'; // Import MenuProvider
+import '../provider/MenuProvider.dart'; // Import MenuProvider
 
 class EditMenuItemDialog extends StatefulWidget {
   final int id; // The Hive index of the menu item

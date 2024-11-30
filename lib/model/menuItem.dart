@@ -60,4 +60,35 @@ class MenuItem {
   void resetQuantity() {
     quantity = 0;
   }
+  // Factory constructor for JSON deserialization
+  factory MenuItem.fromJson(Map<String, dynamic> json) {
+    return MenuItem(
+      id: json['id'],
+      name: json['name'],
+      price: json['price'],
+      offerPrice: json['offerPrice'],
+      stock: json['stock'],
+      category: json['category'],
+      subCategory: json['subCategory'],
+      unitType: json['unitType'],
+      description: json['description'],
+      imageUrl: json['imageUrl'],
+    );
+  }
+
+  // Method to convert a MenuItem to JSON (optional, for backup or debugging)
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'price': price,
+      'offerPrice': offerPrice,
+      'stock': stock,
+      'category': category,
+      'subCategory': subCategory,
+      'unitType': unitType,
+      'description': description,
+      'imageUrl': imageUrl,
+    };
+  }
 }

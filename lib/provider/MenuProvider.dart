@@ -37,6 +37,24 @@ class MenuItemsProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> restoreMenuItems(List<dynamic> items) async {
+    try {
+      if (items != null) {
+        // Convert the list into a Map for batch insertion
+        final dataMap = {for (var item in items) item['id']: MenuItem.fromJson(item)};
+
+        // Use putAll for batch insertions
+        await _menuBox.putAll(dataMap);
+
+        // Refresh in-memory data
+        _menuItems = _menuBox.values.toList();
+        notifyListeners();
+        debugPrint('Menu items restored successfully.');
+      }
+    } catch (e) {
+      debugPrint('Error restoring menu items: $e');
+    }
+  }
 
 
 

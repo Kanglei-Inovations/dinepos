@@ -24,10 +24,33 @@ class InvoiceItem {
 
   InvoiceItem({
     required this.id,
-    required this.invoiceId,  // Make sure the type is int
+    required this.invoiceId,
     required this.itemName,
     required this.quantity,
     required this.price,
     required this.total,
   });
+  // FromJson constructor to handle null values in parsing
+  factory InvoiceItem.fromJson(Map<String, dynamic> json) {
+    return InvoiceItem(
+      id: json['id'] ?? 0,  // Default to 0 if id is null
+      invoiceId: json['invoiceId'] ?? '',  // Default to empty string if null
+      itemName: json['itemName'] ?? '',
+      quantity: json['quantity'] ?? 0,
+      price: json['price']?.toDouble() ?? 0.0,
+      total: json['total']?.toDouble() ?? 0.0,
+    );
+  }
+
+  /// Method to convert an `InvoiceItem` object to a JSON map.
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'invoiceId': invoiceId,
+      'itemName': itemName,
+      'quantity': quantity,
+      'price': price,
+      'total': total,
+    };
+  }
 }

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../model/menuItem.dart';
-import '../provider/menu_items.dart';
+import '../provider/MenuProvider.dart';
 import '../utils/const.dart';
 import '../utils/responsive.dart';
 import '../widget/add_items.dart';

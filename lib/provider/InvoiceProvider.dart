@@ -10,8 +10,8 @@ class InvoiceProvider with ChangeNotifier {
   InvoiceProvider() {
     loadInvoices();
     loadInvoiceItems();
-    // _invoiceBox = Hive.box<Invoice>('invoices');  // Get the already opened box
-    // _invoiceItemBox = Hive.box<InvoiceItem>('invoice_items');
+    _invoiceBox = Hive.box<Invoice>('invoices');  // Get the already opened box
+    _invoiceItemBox = Hive.box<InvoiceItem>('invoice_items');
   }
   // Store invoices and invoice items as lists
   List<Invoice> _invoices = [];
@@ -52,6 +52,56 @@ class InvoiceProvider with ChangeNotifier {
       _invoiceItemBox.put(invoiceItem.id, invoiceItem); // Store the invoice item in Hive box using the id as the key
       loadInvoiceItems(); // Reload the invoice items to sync with the local list
       notifyListeners(); // Notify listeners
+    }
+  }
+// Fetch and restore invoices and invoice items
+  Future<void> restoreInvoices(List<dynamic> invoices) async {
+    try {
+      // Check if the box is initialized
+      if (_invoiceBox != null) {
+        if (invoices != null) {
+          // Convert the list into a Map for batch insertion
+          final dataMap = {
+            for (var invoice in invoices) invoice['id']: Invoice.fromJson(invoice)
+          };
+
+          // Use putAll for batch insertions into Hive
+          await _invoiceBox.putAll(dataMap);
+          _invoices = _invoiceBox.values.toList();
+          // Refresh in-memory data
+          notifyListeners();
+          debugPrint('Invoices restored successfully.');
+        }
+      } else {
+        debugPrint('Error: Invoice box is not initialized.');
+      }
+    } catch (e) {
+      debugPrint('Error restoring invoices: $e');
+    }
+  }
+
+  Future<void> restoreInvoiceItems(List<dynamic> invoiceItems) async {
+    try {
+      // Check if the box is initialized
+      if (_invoiceItemBox != null) {
+        if (invoiceItems != null) {
+          // Convert the list into a Map for batch insertion
+          final dataMap = {
+            for (var item in invoiceItems) item['id']: InvoiceItem.fromJson(item)
+          };
+
+          // Use putAll for batch insertions into Hive
+          await _invoiceItemBox.putAll(dataMap);
+          _invoiceItems = _invoiceItemBox.values.toList();
+          // Refresh in-memory data
+          notifyListeners();
+          debugPrint('Invoice items restored successfully.');
+        }
+      } else {
+        debugPrint('Error: Invoice items box is not initialized.');
+      }
+    } catch (e) {
+      debugPrint('Error restoring invoice items: $e');
     }
   }
 

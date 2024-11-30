@@ -9,10 +9,11 @@ import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 import 'model/invoice_items_model.dart';
 import 'model/invoice_model.dart';
+import 'provider/settings_provider.dart';
 import 'utils/const.dart';
 import 'widget/side_menu.dart';
 import 'model/menuItem.dart';
-import 'provider/menu_items.dart';
+import 'provider/MenuProvider.dart';
 import 'package:path_provider/path_provider.dart';
 
 void main() async {
@@ -44,7 +45,6 @@ void main() async {
     if (!Hive.isAdapterRegistered(2)) {
       Hive.registerAdapter(MenuItemAdapter());
     }
-
     // Open the boxes after registering the adapters
     await Hive.openBox<InvoiceItem>('invoice_items');
     await Hive.openBox<Invoice>('invoices');
@@ -64,6 +64,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<MenuItemsProvider>(create: (_) => MenuItemsProvider()..loadMenuItems()),
         ChangeNotifierProvider<InvoiceProvider>(create: (_) => InvoiceProvider()..loadInvoices()),
+        ChangeNotifierProvider<SettingsProvider>(create: (_) => SettingsProvider()),
       ],
       child: GetMaterialApp(
         title: 'DINEPOS',
