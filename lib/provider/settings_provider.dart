@@ -49,15 +49,24 @@ class SettingsProvider with ChangeNotifier {
   }
 
 
+  // Future<String> getBackupDBPath() async {
+  //   String path = '';
+  //   if (Platform.isAndroid || Platform.isIOS) {
+  //     final directory = await getApplicationDocumentsDirectory();
+  //     path = '${directory.path}/dinepos_db2';
+  //   } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+  //     path = '${Directory.current.path}/dinepos_db2';
+  //   }
+  //   return path;
+  // }
   Future<String> getBackupDBPath() async {
-    String path = '';
     if (Platform.isAndroid || Platform.isIOS) {
       final directory = await getApplicationDocumentsDirectory();
-      path = '${directory.path}/dinepos_db2';
+      return '${directory.path}/dinepos_db2';
     } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      path = '${Directory.current.path}/dinepos_db2';
+      return '${Directory.current.path}/dinepos_db2';
     }
-    return path;
+    throw UnsupportedError('Unsupported platform');
   }
 
   // Get backup path for images
@@ -103,9 +112,18 @@ class SettingsProvider with ChangeNotifier {
       encoder.addFile(jsonFile, 'dinepos_db2/database_backup.json');
 
       // Backup images with progress
+      // for (int i = 0; i < imageFiles.length; i++) {
+      //   var image = imageFiles[i];
+      //   encoder.addFile(image as File, 'dbImage/${image.path.split('/').last}');
+      //   backupProgress = ((i + 1) / imageFiles.length) * 100;
+      //   notifyListeners();
+      // }
+// Backup images with progress
       for (int i = 0; i < imageFiles.length; i++) {
         var image = imageFiles[i];
-        encoder.addFile(image as File, 'dbImage/${image.path.split('/').last}');
+        if (image is File) { // Ensure only files are processed
+          encoder.addFile(image, 'dbImage/${image.path.split('/').last}');
+        }
         backupProgress = ((i + 1) / imageFiles.length) * 100;
         notifyListeners();
       }
@@ -134,6 +152,10 @@ class SettingsProvider with ChangeNotifier {
 
   // Restore data from backup
   Future<void> restoreData(MenuItemsProvider menuProvider, InvoiceProvider invoiceProvider) async {
+    final testDir = await getApplicationDocumentsDirectory();
+    if (!await Directory(testDir.path).exists()) {
+      throw Exception('Unable to access writeable directory on Android.');
+    }
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -147,15 +169,23 @@ class SettingsProvider with ChangeNotifier {
         final bytes = zipFile.readAsBytesSync();
         final archive = ZipDecoder().decodeBytes(bytes);
 
+        // for (var file in archive) {
+        //   final filename = file.name;
+        //   if (file.isFile) {
+        //     final outputFile = File(filename);
+        //     outputFile.createSync(recursive: true);
+        //     outputFile.writeAsBytesSync(file.content as List<int>);
+        //   }
+        // }
         for (var file in archive) {
-          final filename = file.name;
+          final outputPath = await getBackupDBPath(); // Use backup path for Android
+          final filename = '$outputPath/${file.name}';
           if (file.isFile) {
             final outputFile = File(filename);
             outputFile.createSync(recursive: true);
             outputFile.writeAsBytesSync(file.content as List<int>);
           }
         }
-
         final jsonFile = File('$path/database_backup.json');
         print(jsonFile);
         if (jsonFile.existsSync()) {
@@ -165,10 +195,10 @@ class SettingsProvider with ChangeNotifier {
 
           // Delegate restoration to the provider
           await menuProvider.restoreMenuItems(database['menu_items']);
-          await invoiceProvider.restoreInvoices(database['menu_items']);
-          await invoiceProvider.restoreInvoiceItems(database['menu_items']);
+          await invoiceProvider.restoreInvoices(database['invoices']);
+          await invoiceProvider.restoreInvoiceItems(database['invoice_items']);
           notifyListeners();
-          debugPrint('Restore completed.');
+          print('Restore completed.');
         }
       }
     } catch (e) {
@@ -176,12 +206,12 @@ class SettingsProvider with ChangeNotifier {
     }
   }
 
-  Future<void> _restoreItemsToBox(List<dynamic> items, Box box) async {
-    for (var item in items) {
-      bool exists = box.values.any((existing) => existing['id'] == item['id']);
-      if (!exists) {
-        box.put(item.id, item);
-      }
-    }
-  }
+  // Future<void> _restoreItemsToBox(List<dynamic> items, Box box) async {
+  //   for (var item in items) {
+  //     bool exists = box.values.any((existing) => existing['id'] == item['id']);
+  //     if (!exists) {
+  //       box.put(item.id, item);
+  //     }
+  //   }
+  // }
 }
