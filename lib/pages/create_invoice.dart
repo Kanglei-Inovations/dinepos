@@ -1,17 +1,25 @@
+import 'dart:developer';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:dinepos/pages/printer.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_thermal_printer/flutter_thermal_printer.dart';
+import 'package:flutter_thermal_printer/utils/printer.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
-import 'dart:math';
+
 import '../model/invoice_items_model.dart';
 import '../model/menuItem.dart';
+import '../provider/InvoiceProvider.dart';
 import '../provider/MenuProvider.dart';
 import '../utils/const.dart';
 import '../utils/responsive.dart';
 import '../widget/menu_gridview.dart';
 import '../widget/papercut_design.dart';
 import 'package:badges/badges.dart' as badges;
+import 'package:flutter/services.dart';
+import 'dart:async';
 
 class CreateInvoice extends StatefulWidget {
   final String phone;
@@ -36,6 +44,7 @@ class _CreateInvoiceState extends State<CreateInvoice> {
   String searchQuery = '';
   double amountPaid = 0.0;
   String selectedPaymentType = 'Cash';
+  final _flutterThermalPrinterPlugin = FlutterThermalPrinter.instance;
 
   // Method to generate an invoice number based on the current time
   String generateInvoiceNumber() {
@@ -60,6 +69,7 @@ class _CreateInvoiceState extends State<CreateInvoice> {
           Provider.of<MenuItemsProvider>(context, listen: false);
       menuProvider.loadMenuItems();
     });
+
   }
 
   void _calculateTotals() {
@@ -118,8 +128,19 @@ class _CreateInvoiceState extends State<CreateInvoice> {
       }
     });
   }
+  void _removeItem(MenuItem menuItem) {
+    setState(() {
+      // Remove all items with the matching id
+      invoiceItems.removeWhere((item) => item.id == menuItem.id);
+      // Recalculate totals and update quantities after removal
+      _calculateTotals();
+      _updateQty();
+    });
+  }
+
 
   Future<void> _submitOrder() async {
+    // InvoiceProvider.addInvoice(invoiceItems);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Don\'t forget to collect payment.'),
@@ -157,6 +178,83 @@ class _CreateInvoiceState extends State<CreateInvoice> {
         total: menuItem.price * menuItem.quantity,
       );
     }).toList();
+
+
+
+
+    void _printInvoice() async {
+      try {
+        // Load the capability profile for the printer
+        final profile = await CapabilityProfile.load();
+        final generator = Generator(PaperSize.mm58, profile);
+
+        // Initialize a list of bytes for the invoice data
+        List<int> bytes = [];
+
+        // Add restaurant name and address
+        bytes += generator.text('NAAZ RESTAURANT',
+            styles: PosStyles(align: PosAlign.center, bold: true, height: PosTextSize.size2));
+        bytes += generator.text('Lilong Bazar - 795135', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.hr(); // Horizontal line
+
+        // Add customer details
+        bytes += generator.text('Invoice To:', styles: PosStyles(bold: true));
+        bytes += generator.text('Name: ${widget.name}');
+        bytes += generator.text('Phone: ${widget.phone.isNotEmpty ? widget.phone : 'N/A'}');
+        bytes += generator.text('Address: ${widget.address}');
+        bytes += generator.hr();
+
+        // Add item list
+        bytes += generator.text('Item List:', styles: PosStyles(bold: true));
+        for (var item in invoiceItems) {
+          bytes += generator.text(
+              '${item.name.padRight(20)} ₹${item.price.toStringAsFixed(2).padLeft(10)} x ${item.quantity.toString().padLeft(3)}');
+          bytes += generator.text(
+              'Total: ₹${(item.price * item.quantity).toStringAsFixed(2).padLeft(10)}');
+        }
+        bytes += generator.hr();
+
+        // Add a thank you message
+        bytes += generator.text('Thank You, Visit Again!',
+            styles: PosStyles(align: PosAlign.center, bold: true));
+
+        // Cut the paper after printing
+        bytes += generator.cut();
+
+        // Wait for the printer list to load
+        await FlutterThermalPrinter.instance.getPrinters();  // Initiates the search for printers
+
+        // Listen to the devices stream to get the list of printers
+        FlutterThermalPrinter.instance.devicesStream.listen((printers) async {
+          // Find the printer with the name 'Everycom-58-Series'
+          Printer everycomPrinter = printers.firstWhere(
+                (printer) => printer.name == 'Everycom-58-Series',
+            orElse: () => throw Exception("Everycom-58-Series printer not found"),
+          );
+
+          // Check if the printer is connected
+          if (everycomPrinter.isConnected ?? false) {
+            // Send the invoice data to the printer
+            await FlutterThermalPrinter.instance.printData(everycomPrinter, bytes);
+            print("Invoice sent to printer");
+          } else {
+            // If the printer is not connected, try to connect it
+            final isConnected = await FlutterThermalPrinter.instance.connect(everycomPrinter);
+            if (isConnected) {
+              // Send the data once connected
+              await FlutterThermalPrinter.instance.printData(everycomPrinter, bytes);
+              print("Invoice sent to printer");
+            } else {
+              print("Failed to connect to the printer");
+            }
+          }
+        });
+
+      } catch (e) {
+        // Handle any errors
+        print("Error: $e");
+      }
+    }
 
     return Scaffold(
     resizeToAvoidBottomInset: false,
@@ -214,6 +312,7 @@ class _CreateInvoiceState extends State<CreateInvoice> {
                     filteredMenuItems: filteredMenuItems,
                     addMenuItem: _addMenuItem,
                     removeMenuItem: _removeMenuItem,
+                      removeItem: _removeItem
                   ),
                 ),
               ],
@@ -520,7 +619,22 @@ class _CreateInvoiceState extends State<CreateInvoice> {
                                           ),
                                         ),
                                       ),
-                                    )
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: ElevatedButton.icon(
+                                        onPressed: (){
+                                          _printInvoice();
+                                            },
+                                        icon: Icon(Icons.print),
+                                        label: Text("Print Invoice"),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.green,
+                                          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                          textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),

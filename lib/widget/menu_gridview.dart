@@ -11,12 +11,14 @@ class MenuScreen extends StatefulWidget {
   final List<InvoiceItem> invoiceItems;
   final Function(MenuItem) addMenuItem;
   final Function(MenuItem) removeMenuItem;
+  final Function(MenuItem) removeItem;
 
   const MenuScreen({
     required this.invoiceItems,
     required this.filteredMenuItems,
     required this.addMenuItem,
     required this.removeMenuItem,
+    required this.removeItem,
     Key? key,
   }) : super(key: key);
 
@@ -38,6 +40,7 @@ class _MenuScreenState extends State<MenuScreen> {
           invoiceItems: widget.invoiceItems,
           addMenuItem: widget.addMenuItem,
           removeMenuItem: widget.removeMenuItem,
+          removeItem: widget.removeItem,
         ),
         tablet: MenuGridView(
           crossAxisCount: 4,
@@ -46,6 +49,7 @@ class _MenuScreenState extends State<MenuScreen> {
           invoiceItems: widget.invoiceItems,
           addMenuItem: widget.addMenuItem,
           removeMenuItem: widget.removeMenuItem,
+          removeItem: widget.removeItem,
         ),
         desktop: MenuGridView(
           crossAxisCount: size.width < 1400 ? 4 : 5,
@@ -54,6 +58,7 @@ class _MenuScreenState extends State<MenuScreen> {
           invoiceItems: widget.invoiceItems,
           addMenuItem: widget.addMenuItem,
           removeMenuItem: widget.removeMenuItem,
+          removeItem: widget.removeItem,
         ),
       ),
     );
@@ -67,6 +72,7 @@ class MenuGridView extends StatefulWidget {
     required this.invoiceItems,
     required this.addMenuItem,
     required this.removeMenuItem,
+    required this.removeItem,
     this.crossAxisCount = 4,
     this.childAspectRatio = 1,
   }) : super(key: key);
@@ -75,6 +81,7 @@ class MenuGridView extends StatefulWidget {
   final List<InvoiceItem> invoiceItems;
   final Function(MenuItem) addMenuItem;
   final Function(MenuItem) removeMenuItem;
+  final Function(MenuItem) removeItem;
   final int crossAxisCount;
   final double childAspectRatio;
 
@@ -161,6 +168,11 @@ class _MenuGridViewState extends State<MenuGridView> {
                         onPressed: () => widget.addMenuItem(item),
                         icon: Icon(Icons.add, color: Colors.green),
                       ),
+                      invoiceItem.quantity <= 0 ?SizedBox():
+                      IconButton(
+                        onPressed: () => widget.removeItem(item),
+                        icon: Icon(Icons.delete, color: Colors.redAccent),
+                      ),
                     ],
                   ),
                   SizedBox(
@@ -171,12 +183,19 @@ class _MenuGridViewState extends State<MenuGridView> {
                       ),
 
                       onPressed: (invoiceItem.quantity <= 0) ? () => widget.addMenuItem(item) : null, // Disable if quantity is 0 or less
-                      child: Text(
-                        'Add to Cart',
-                        style: TextStyle(color: invoiceItem.quantity <= 0 ? Colors.white : Colors.grey),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.add_shopping_cart, color: Colors.white),
+                          Text(
+                            'Add to Cart',
+                            style: TextStyle(color: invoiceItem.quantity <= 0 ? Colors.white : Colors.grey),
+                          ),
+                        ],
                       ),
                     ),
                   ),
+
                 ],
               ),
             ),

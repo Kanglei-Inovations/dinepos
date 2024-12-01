@@ -4,8 +4,8 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus
+  flutter_thermal_printer
   printing
-  share_plus
   url_launcher_windows
 )
 

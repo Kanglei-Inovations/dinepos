@@ -122,7 +122,7 @@ class SettingsProvider with ChangeNotifier {
       for (int i = 0; i < imageFiles.length; i++) {
         var image = imageFiles[i];
         if (image is File) { // Ensure only files are processed
-          encoder.addFile(image, 'dbImage/${image.path.split('/').last}');
+          encoder.addFile(image, '${image.path.split('/').last}');
         }
         backupProgress = ((i + 1) / imageFiles.length) * 100;
         notifyListeners();
@@ -139,7 +139,7 @@ class SettingsProvider with ChangeNotifier {
       ));
       print(zipFilePath);
 
-      await Share.shareXFiles([XFile(zipFilePath)]);
+      // await Share.shareXFiles([XFile(zipFilePath.path)]);
 
 
     } catch (e) {

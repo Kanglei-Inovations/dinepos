@@ -56,6 +56,7 @@ class _SettingsState extends State<Settings> {
               ),
             ),
             SizedBox(height: 16),
+            Center(child: LinearProgressIndicator(value: settingsProvider.backupProgress / 100)),
             ElevatedButton.icon(
               onPressed: () async { await settingsProvider.backupData(context);},
               icon: Icon(Icons.backup),
@@ -87,7 +88,7 @@ class _SettingsState extends State<Settings> {
             _buildSection("Invoice", settingsProvider.invoices ),
             _buildSection("InvoiceItem", settingsProvider.invoiceItems ),
             _buildSection("MenuItem", settingsProvider.menuItems ),
-            LinearProgressIndicator(value: settingsProvider.backupProgress / 100),
+
 
           ],
         ),
