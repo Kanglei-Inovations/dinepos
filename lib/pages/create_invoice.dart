@@ -208,9 +208,9 @@ class _CreateInvoiceState extends State<CreateInvoice> {
         bytes += generator.text('Item List:', styles: PosStyles(bold: true));
         for (var item in invoiceItems) {
           bytes += generator.text(
-              '${item.name.padRight(20)} ₹${item.price.toStringAsFixed(2).padLeft(10)} x ${item.quantity.toString().padLeft(3)}');
+              '${item.name.padRight(20)} Rs${item.price.toStringAsFixed(2).padLeft(10)} x ${item.quantity.toString().padLeft(3)}');
           bytes += generator.text(
-              'Total: ₹${(item.price * item.quantity).toStringAsFixed(2).padLeft(10)}');
+              'Total: Rs${(item.price * item.quantity).toStringAsFixed(2).padLeft(10)}');
         }
         bytes += generator.hr();
 
