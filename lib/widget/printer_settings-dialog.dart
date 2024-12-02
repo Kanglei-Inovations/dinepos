@@ -1,29 +1,27 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_thermal_printer/flutter_thermal_printer.dart';
 import 'package:flutter_thermal_printer/utils/printer.dart';
-import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'dart:async';
 import 'dart:developer';
-class SelectPrinterScreen extends StatefulWidget {
+
+import '../utils/const.dart';
+class PrinterSettingsDialog extends StatefulWidget {
   final List<dynamic> invoiceItems;
   final String? name;
   final String? address;
   final String phone;
-
-  SelectPrinterScreen({
-    required this.invoiceItems,
+  const PrinterSettingsDialog({required this.invoiceItems,
     this.name,
     this.address,
-    required this.phone,
-  });
+    required this.phone,});
 
   @override
-  _SelectPrinterScreenState createState() => _SelectPrinterScreenState();
+  State<PrinterSettingsDialog> createState() => _PrinterSettingsDialogState();
 }
 
-class _SelectPrinterScreenState extends State<SelectPrinterScreen> {
+class _PrinterSettingsDialogState extends State<PrinterSettingsDialog> {
   final _flutterThermalPrinterPlugin = FlutterThermalPrinter.instance;
 
   List<Printer> printers = [];
@@ -53,7 +51,7 @@ class _SelectPrinterScreenState extends State<SelectPrinterScreen> {
         );
       });
     });
-    Future.delayed(const Duration(seconds: 5), () {
+    Future.delayed(const Duration(seconds: 2), () {
       _devicesStreamSubscription?.cancel();
       _flutterThermalPrinterPlugin.stopScan();
       setState(() {
@@ -64,8 +62,8 @@ class _SelectPrinterScreenState extends State<SelectPrinterScreen> {
   }
 
   stopScan() {
-          _devicesStreamSubscription?.cancel();
-      _flutterThermalPrinterPlugin.stopScan();
+    _devicesStreamSubscription?.cancel();
+    _flutterThermalPrinterPlugin.stopScan();
 
 
   }
@@ -73,53 +71,59 @@ class _SelectPrinterScreenState extends State<SelectPrinterScreen> {
   void getUsbDevices() async {
     await _flutterThermalPrinterPlugin.getUsbDevices();
   }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Plugin example app'),
-        systemOverlayStyle: const SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-        ),
+    return Dialog(
+      insetPadding: EdgeInsets.all(20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          ElevatedButton(
-            onPressed: () {
-              // startScan();
-              startScan();
-            },
-            child: const Text('Get Printers'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              // startScan();
-              stopScan();
-            },
-            child: const Text('Stop Scan'),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: printers.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  onTap: () async {
-                    if (printers[index].isConnected ?? false) {
-                      await _flutterThermalPrinterPlugin
-                          .disconnect(printers[index]);
-                    } else {
-                      final isConnected = await _flutterThermalPrinterPlugin
-                          .connect(printers[index]);
-                      log("Devices: $isConnected");
-                    }
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton(
+                onPressed: () {
+                  startScan();
+                },
+                child: Row(
+                  children: [
+                    Icon(Icons.refresh),
+                    SizedBox(width: 5,),
+                    Text('Get Printers'),
+                  ],
+                ),
+              ),
+                SizedBox(width: 10,),
+                ElevatedButton(
+                  onPressed: () {
+                    stopScan();
                   },
-                  title: Text(printers[index].name ?? 'No Name'),
-                  subtitle: Text("Connected: ${printers[index].isConnected}"),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.connect_without_contact),
-                    onPressed: () async {
+                  child: Row(
+                    children: [
+                      Icon(Icons.stop_circle_outlined),
+                      SizedBox(width: 5,),
+                      Text('Stop Scan'),
+                    ],
+                  ),
+                ),],
+            ),
+            SizedBox(height: 10,),
+            Divider(
+              thickness: 2,
+              color: primary2Color,
+            ),
+            Expanded(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: printers.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    onTap: () async {
                       final profile = await CapabilityProfile.load();
                       final generator = Generator(PaperSize.mm58, profile);
                       List<int> bytes = [];
@@ -159,16 +163,28 @@ class _SelectPrinterScreenState extends State<SelectPrinterScreen> {
                         bytes,
 
                       );
+                      Get.back();
                     },
-                  ),
-                );
-              },
+                    title: Text(printers[index].name ?? 'No Name'),
+                    subtitle: Text("Connected: ${printers[index].isConnected}"),
+                    trailing: Icon(Icons.print),
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton(
+                  onPressed: () => Get.back(),
+                  child: Text("Cancel"),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
+
     );
   }
-
-
 }

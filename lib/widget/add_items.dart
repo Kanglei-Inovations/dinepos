@@ -179,76 +179,81 @@ class _AddMenuItemState extends State<AddMenuItem> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     // Vegetable Option (Green when selected)
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          category = 'Vegetable';  // Set to Vegetable when tapped
-                        });
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: category == 'Vegetable' ? Colors.green : Colors.red, // Green if selected, Red if not
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.eco,  // Icon for Vegetable
-                              size: 20,
-                              color: Colors.white,
-                            ),
-                            SizedBox(width: 5),
-                            Text(
-                              "Vegetable",  // Text for Vegetable
-                              style: TextStyle(
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            category = 'Vegetable';  // Set to Vegetable when tapped
+                          });
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: category == 'Vegetable' ? Colors.green : Colors.red, // Green if selected, Red if not
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.eco,  // Icon for Vegetable
+                                size: 20,
                                 color: Colors.white,
-                                fontSize: 14,
                               ),
-                            ),
-                          ],
+                              SizedBox(width: 5),
+                              Text(
+                                "Vegetable",  // Text for Vegetable
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
 
                     SizedBox(width: 10),
                     // Non-Vegetable Option (Green when selected)
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          category = 'Non-Vegetable';  // Set to Non-Vegetable when tapped
-                        });
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: category == 'Non-Vegetable' ? Colors.green : Colors.red, // Green if selected, Red if not
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.local_dining,  // Icon for Non-Vegetable
-                              size: 20,
-                              color: Colors.white,
-                            ),
-                            SizedBox(width: 5),
-                            Text(
-                              "Non-Veg",  // Text for Non-Vegetable
-                              style: TextStyle(
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            category = 'Non-Vegetable';  // Set to Non-Vegetable when tapped
+                          });
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: category == 'Non-Vegetable' ? Colors.green : Colors.red, // Green if selected, Red if not
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.local_dining,  // Icon for Non-Vegetable
+                                size: 20,
                                 color: Colors.white,
-                                fontSize: 14,
                               ),
-                            ),
-                          ],
+                              SizedBox(width: 5),
+                              Text(
+                                "Non-Veg",  // Text for Non-Vegetable
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
+
               if (category == 'Non-Vegetable') ...[Text(
                 'Sub Category: ',
                 style: TextStyle(

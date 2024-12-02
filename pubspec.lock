@@ -316,13 +316,21 @@ packages:
     source: sdk
     version: "0.0.0"
   flutter_blue_plus:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: flutter_blue_plus
       sha256: d2ac9fac56c4b3b08eb68752380e2d45e64c61db629b70e61bb36c95cb65d431
       url: "https://pub.dev"
     source: hosted
     version: "1.34.5"
+  flutter_blue_plus_windows:
+    dependency: "direct main"
+    description:
+      name: flutter_blue_plus_windows
+      sha256: "55634f396273127f86761e6069355e4d37de619f1f345e7fcedeb51d5dfb7d7c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.24.22"
   flutter_launcher_icons:
     dependency: "direct dev"
     description:
@@ -970,6 +978,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
+  stream_with_value:
+    dependency: transitive
+    description:
+      name: stream_with_value
+      sha256: "483d79bf604fdea5274e31207956b2f624f5f03a506cacf081b65cdfcfa647a6"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.0"
   string_scanner:
     dependency: transitive
     description:

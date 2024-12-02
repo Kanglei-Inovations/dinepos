@@ -143,12 +143,12 @@ class _EditMenuItemDialogState extends State<EditMenuItemDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
+    return AlertDialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10.0),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
+      content: SingleChildScrollView(
+
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(

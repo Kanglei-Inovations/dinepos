@@ -44,15 +44,13 @@ dependencies:
   path_provider:
   badges: ^3.1.2
   share_plus:
-#  esc_pos_printer: ^4.1.0
+#  Printing
   pdf:
   printing:
-#  esc_pos_utils:
-#  usb_serial:
-#  blue_thermal_printer:
-#  network_info_plus:
+  flutter_blue_plus:
   printer:
   flutter_thermal_printer: ^0.0.17
+  flutter_blue_plus_windows: ^1.24.22
 
 
   # The following adds the Cupertino Icons font to your application.
