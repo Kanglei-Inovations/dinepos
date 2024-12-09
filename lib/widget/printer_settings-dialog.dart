@@ -12,10 +12,20 @@ class PrinterSettingsDialog extends StatefulWidget {
   final String? name;
   final String? address;
   final String phone;
-  const PrinterSettingsDialog({required this.invoiceItems,
+  final double subtotal;
+  final double discount;
+  final double tax;
+  final double balance;
+  const PrinterSettingsDialog({
+    required this.invoiceItems,
     this.name,
     this.address,
-    required this.phone,});
+    required this.phone,
+    required this.subtotal,
+    required this.discount,
+    required this.tax,
+    required this.balance,
+  });
 
   @override
   State<PrinterSettingsDialog> createState() => _PrinterSettingsDialogState();
@@ -146,6 +156,22 @@ class _PrinterSettingsDialogState extends State<PrinterSettingsDialog> {
                         bytes += generator.text(
                             'Total: Rs${(item.price * item.quantity).toStringAsFixed(2).padLeft(10)}');
                       }
+                      bytes += generator.hr();
+                      // Subtotal
+                      bytes += generator.text('Subtotal: Rs${widget.subtotal.toStringAsFixed(2)}',
+                          styles: PosStyles(align: PosAlign.right));
+
+// Discount
+                      bytes += generator.text('Discount: Rs${widget.discount.toStringAsFixed(2)}',
+                          styles: PosStyles(align: PosAlign.right));
+
+// Tax
+                      bytes += generator.text('Tax: Rs${widget.tax.toStringAsFixed(2)}',
+                          styles: PosStyles(align: PosAlign.right));
+
+// Balance
+                      bytes += generator.text('Balance: Rs${widget.balance.toStringAsFixed(2)}',
+                          styles: PosStyles(align: PosAlign.right));
                       // bytes += generator.text(
                       //   "Sunil Kumar",
                       //   styles: const PosStyles(

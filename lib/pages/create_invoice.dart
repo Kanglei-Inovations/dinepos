@@ -448,7 +448,7 @@ class _CreateInvoiceState extends State<CreateInvoice> {
                                                         ),
                                                       ),
                                                       Text(
-                                                        "₹${(item.price * item.quantity).toStringAsFixed(2)}",
+                                                        "₹ ${(item.price * item.quantity).toStringAsFixed(2)}",
                                                         style: TextStyle(
                                                           fontSize: 16,
                                                           fontWeight:
@@ -456,6 +456,8 @@ class _CreateInvoiceState extends State<CreateInvoice> {
                                                           color: Colors.black,
                                                         ),
                                                       ),
+
+
                                                     ],
                                                   );
                                                 }).toList(),
@@ -477,7 +479,109 @@ class _CreateInvoiceState extends State<CreateInvoice> {
                                                 ),
                                               ),
                                       ),
-
+                                      Divider(
+                                        thickness: 1,
+                                        color: Colors.black,
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Column(
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(
+                                                  "Subtotal",
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight:
+                                                    FontWeight.normal,
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  "₹ ${subtotal.toStringAsFixed(2)}",
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight:
+                                                    FontWeight.bold,
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(
+                                                  "Discount",
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight:
+                                                    FontWeight.normal,
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  "(-)    ${discount.toStringAsFixed(2)}",
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight:
+                                                    FontWeight.bold,
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(
+                                                  "Tax",
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight:
+                                                    FontWeight.normal,
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  "₹ ${taxAmount.toStringAsFixed(2)}",
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight:
+                                                    FontWeight.bold,
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(
+                                                  "Balance/Due",
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight:
+                                                    FontWeight.bold,
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                                Text(
+                                                "₹ ${(total - amountPaid).toStringAsFixed(2)}",
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight:
+                                                    FontWeight.bold,
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                       Divider(
                                         thickness: 5,
                                         color: Colors.white,
@@ -822,6 +926,7 @@ class _CreateInvoiceState extends State<CreateInvoice> {
             ),
         ],
       ),
+
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           if (_formKey.currentState!.validate()) {
@@ -829,6 +934,10 @@ class _CreateInvoiceState extends State<CreateInvoice> {
             showDialog(
               context: context,
               builder: (context) => PrinterSettingsDialog(
+                subtotal: subtotal,
+                discount: discount,
+                tax: taxAmount,
+                balance: total-amountPaid,
                 invoiceItems: invoiceItems,
                 name: widget.name,
                 address: widget.address,
