@@ -1,8 +1,11 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import '../model/invoice_items_model.dart';
+import '../model/invoice_model.dart';
 import '../model/menuItem.dart';
+import '../provider/InvoiceProvider.dart';
 import '../provider/MenuProvider.dart';
 import '../utils/const.dart';
 import '../utils/responsive.dart';
@@ -124,6 +127,7 @@ class _CreateInvoiceState extends State<CreateInvoice> {
   }
 
   Future<void> _submitOrder() async {
+    Get.back();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -132,6 +136,30 @@ class _CreateInvoiceState extends State<CreateInvoice> {
       ),
     );
     // Save invoice logic here
+    // Save the invoice and its items using the provider
+    // Create an Invoice object with the required data
+    Invoice invoice = Invoice(
+      id: DateTime.now().millisecondsSinceEpoch, // Unique ID based on timestamp
+      userId: 'U123456', // Replace with actual user ID
+      name: widget.name ?? "", // Replace with customer name
+      phone: widget.phone, // Replace with customer phone number
+      address: widget.address ?? "", // Replace with customer address
+      status: 'Pending', // Replace with order status
+      subtotal: subtotal, // Replace with actual subtotal
+      discount: discount, // Replace with actual discount
+      taxRate: taxAmount, // Replace with applicable tax rate
+      amountPaid: amountPaid, // Replace with amount paid
+      paymentType: 'Cash', // Replace with payment type
+      createdAt: DateTime.now(),
+    );
+    // Save the invoice
+    final invoiceProvider = Provider.of<InvoiceProvider>(context, listen: false);
+    invoiceProvider.addInvoice(invoice);
+
+    // Save each invoice item
+    for (InvoiceItem item in invoiceItems) {
+      invoiceProvider.addInvoiceItem(item);
+    }
   }
 
   void _updateQty() {
