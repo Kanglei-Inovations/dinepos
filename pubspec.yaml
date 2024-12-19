@@ -52,6 +52,7 @@ dependencies:
   flutter_thermal_printer: ^0.0.17
   flutter_blue_plus_windows: ^1.24.22
 
+  qr_flutter: ^4.1.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

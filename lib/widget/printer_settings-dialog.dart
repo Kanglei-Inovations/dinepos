@@ -16,6 +16,7 @@ class PrinterSettingsDialog extends StatefulWidget {
   final double discount;
   final double tax;
   final double balance;
+  final double amountPaid;
   const PrinterSettingsDialog({
     required this.invoiceItems,
     this.name,
@@ -24,7 +25,7 @@ class PrinterSettingsDialog extends StatefulWidget {
     required this.subtotal,
     required this.discount,
     required this.tax,
-    required this.balance,
+    required this.balance, required this.amountPaid,
   });
 
   @override
@@ -147,14 +148,20 @@ class _PrinterSettingsDialogState extends State<PrinterSettingsDialog> {
                       bytes += generator.text('Phone: ${widget.phone.isNotEmpty ? widget.phone : 'N/A'}');
                       bytes += generator.text('Address: ${widget.address}');
                       bytes += generator.hr();
-                      bytes += generator.text('Item List:', styles: PosStyles(bold: true));
+                      bytes += generator.text('Item List:----------------------', styles: PosStyles(bold: true));
+                      bytes += generator.text('Name------------RateXQty--Total', styles: PosStyles(bold: true));
                       // Iterate over the items in the invoice list
+                      int serialNumber = 1;
                       for (var item in widget.invoiceItems) {
                         // Assuming each item is a map with keys: name, price, and quantity
                         bytes += generator.text(
-                            '${item.name.padRight(20)} Rs${item.price.toStringAsFixed(2).padLeft(10)} x ${item.quantity.toString().padLeft(3)}');
-                        bytes += generator.text(
-                            'Total: Rs${(item.price * item.quantity).toStringAsFixed(2).padLeft(10)}');
+                          '${serialNumber.toString()}) ${item.name}'.padRight(32) + // Item name padded to 20 characters
+                              '${item.price.toStringAsFixed(2)}' + // Price padded to 8 characters
+                              ' x ${item.quantity.toString()}' + // Quantity padded to 4 characters
+                              ' =${(item.price * item.quantity).toStringAsFixed(2)}', // Total padded to 10 characters
+                          styles: PosStyles(align: PosAlign.right, bold: true),
+                        );
+                        serialNumber++;
                       }
                       bytes += generator.hr();
                       // Subtotal
@@ -170,19 +177,20 @@ class _PrinterSettingsDialogState extends State<PrinterSettingsDialog> {
                           styles: PosStyles(align: PosAlign.right));
 
 // Balance
-                      bytes += generator.text('Balance: Rs${widget.balance.toStringAsFixed(2)}',
+                      print(widget.balance);
+                      bytes += generator.text('Paid: Rs${widget.amountPaid.toStringAsFixed(2)}',
                           styles: PosStyles(align: PosAlign.right));
-                      // bytes += generator.text(
-                      //   "Sunil Kumar",
-                      //   styles: const PosStyles(
-                      //     bold: true,
-                      //     height: PosTextSize.size3,
-                      //     width: PosTextSize.size3,
-                      //   ),
-                      // );
+
+                        bytes += generator.text(
+                          'Balance: Rs${widget.balance.toStringAsFixed(2)}',
+                          styles: PosStyles(align: PosAlign.right),
+                        );
+
+                      bytes += generator.emptyLines(1);
+
                       bytes += generator.text('Thank You, Visit Again!',
                           styles: PosStyles(align: PosAlign.center, bold: true));
-
+                      bytes += generator.drawer();
                       bytes += generator.cut();
                       await _flutterThermalPrinterPlugin.printData(
                         printers[index],

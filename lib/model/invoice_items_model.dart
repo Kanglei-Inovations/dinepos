@@ -5,7 +5,7 @@ part 'invoice_items_model.g.dart';
 @HiveType(typeId: 0)
 class InvoiceItem {
   @HiveField(0)
-  final int id;
+  final int? id;
 
   @HiveField(1)
   final String invoiceId;  // Ensure this is an int, not a String.
@@ -23,7 +23,7 @@ class InvoiceItem {
   final double total;
 
   InvoiceItem({
-    required this.id,
+    this.id,
     required this.invoiceId,
     required this.itemName,
     required this.quantity,

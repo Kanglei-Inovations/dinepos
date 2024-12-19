@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
@@ -126,39 +127,79 @@ class _CreateInvoiceState extends State<CreateInvoice> {
     });
   }
 
-  Future<void> _submitOrder() async {
-    Get.back();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Don\'t forget to collect payment.'),
-        duration: Duration(seconds: 2),
-      ),
-    );
-    // Save invoice logic here
-    // Save the invoice and its items using the provider
-    // Create an Invoice object with the required data
-    Invoice invoice = Invoice(
-      id: DateTime.now().millisecondsSinceEpoch, // Unique ID based on timestamp
-      userId: 'U123456', // Replace with actual user ID
-      name: widget.name ?? "", // Replace with customer name
-      phone: widget.phone, // Replace with customer phone number
-      address: widget.address ?? "", // Replace with customer address
-      status: 'Pending', // Replace with order status
-      subtotal: subtotal, // Replace with actual subtotal
-      discount: discount, // Replace with actual discount
-      taxRate: taxAmount, // Replace with applicable tax rate
-      amountPaid: amountPaid, // Replace with amount paid
-      paymentType: 'Cash', // Replace with payment type
-      createdAt: DateTime.now(),
-    );
-    // Save the invoice
-    final invoiceProvider = Provider.of<InvoiceProvider>(context, listen: false);
-    invoiceProvider.addInvoice(invoice);
 
-    // Save each invoice item
-    for (InvoiceItem item in invoiceItems) {
-      invoiceProvider.addInvoiceItem(item);
+  int generateRandomTimestamp() {
+    Random random = Random();
+
+    // Generate a random number between 1 and 1,000,000
+    int timestamp = random.nextInt(1000000000) + 1;  // Ensures the number is between 1 and 1,000,000
+
+    return timestamp;
+  }
+  Future<void> _submitOrder(
+      {required double subtotal,
+      required String phone,
+      required double balance,
+      String? address,
+      String? name,
+      required double tax,
+      required List<MenuItem> invoiceItems,
+      required double discount}) async {
+    try {
+      Get.back();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Don\'t forget to collect payment.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+print(DateTime.now().millisecondsSinceEpoch);
+      // Generate random ID for Invoice
+      int invoiceId = generateRandomTimestamp();
+      Invoice invoice = Invoice(
+        id: invoiceId, // Unique ID
+        userId: 'U123456', // Replace with actual user ID
+        name: name ?? "", // Customer name
+        phone: phone, // Customer phone
+        address: address ?? "", // Customer address
+        status: 'Pending', // Order status
+        subtotal: subtotal, // Subtotal
+        discount: discount, // Discount
+        taxRate: taxAmount, // Tax rate
+        amountPaid: subtotal + taxAmount - discount - balance, // Amount paid
+        paymentType: 'Cash', // Payment type
+        createdAt: DateTime.now(),
+      );
+
+      // Save the invoice using the provider
+      final invoiceProvider =
+          Provider.of<InvoiceProvider>(context, listen: false);
+      invoiceProvider.addInvoice(invoice);
+
+      // Convert and save each selected MenuItem as an InvoiceItem
+      for (MenuItem menuItem in invoiceItems) {
+        InvoiceItem invoiceItem = InvoiceItem(
+          id: generateRandomTimestamp(),
+          invoiceId: invoice.id.toString(), // Link to the invoice
+          itemName: menuItem.name, // Name of the item
+          price: menuItem.price, // Price of the item
+          quantity: menuItem.quantity,
+          total: menuItem.price+menuItem.quantity, // Quantity of the item
+        );
+        invoiceProvider.addInvoiceItem(invoiceItem);
+      }
+
+      debugPrint('Invoice and items saved successfully.');
+    } catch (e) {
+      debugPrint('Error saving invoice: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to save the invoice.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
     }
   }
 
@@ -484,8 +525,6 @@ class _CreateInvoiceState extends State<CreateInvoice> {
                                                           color: Colors.black,
                                                         ),
                                                       ),
-
-
                                                     ],
                                                   );
                                                 }).toList(),
@@ -516,14 +555,16 @@ class _CreateInvoiceState extends State<CreateInvoice> {
                                         child: Column(
                                           children: [
                                             Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
                                               children: [
                                                 Text(
                                                   "Subtotal",
                                                   style: TextStyle(
                                                     fontSize: 16,
                                                     fontWeight:
-                                                    FontWeight.normal,
+                                                        FontWeight.normal,
                                                     color: Colors.black,
                                                   ),
                                                 ),
@@ -531,22 +572,23 @@ class _CreateInvoiceState extends State<CreateInvoice> {
                                                   "₹ ${subtotal.toStringAsFixed(2)}",
                                                   style: TextStyle(
                                                     fontSize: 16,
-                                                    fontWeight:
-                                                    FontWeight.bold,
+                                                    fontWeight: FontWeight.bold,
                                                     color: Colors.black,
                                                   ),
                                                 ),
                                               ],
                                             ),
                                             Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
                                               children: [
                                                 Text(
                                                   "Discount",
                                                   style: TextStyle(
                                                     fontSize: 16,
                                                     fontWeight:
-                                                    FontWeight.normal,
+                                                        FontWeight.normal,
                                                     color: Colors.black,
                                                   ),
                                                 ),
@@ -554,22 +596,23 @@ class _CreateInvoiceState extends State<CreateInvoice> {
                                                   "(-)    ${discount.toStringAsFixed(2)}",
                                                   style: TextStyle(
                                                     fontSize: 16,
-                                                    fontWeight:
-                                                    FontWeight.bold,
+                                                    fontWeight: FontWeight.bold,
                                                     color: Colors.black,
                                                   ),
                                                 ),
                                               ],
                                             ),
                                             Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
                                               children: [
                                                 Text(
                                                   "Tax",
                                                   style: TextStyle(
                                                     fontSize: 16,
                                                     fontWeight:
-                                                    FontWeight.normal,
+                                                        FontWeight.normal,
                                                     color: Colors.black,
                                                   ),
                                                 ),
@@ -577,31 +620,30 @@ class _CreateInvoiceState extends State<CreateInvoice> {
                                                   "₹ ${taxAmount.toStringAsFixed(2)}",
                                                   style: TextStyle(
                                                     fontSize: 16,
-                                                    fontWeight:
-                                                    FontWeight.bold,
+                                                    fontWeight: FontWeight.bold,
                                                     color: Colors.black,
                                                   ),
                                                 ),
                                               ],
                                             ),
                                             Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
                                               children: [
                                                 Text(
                                                   "Balance/Due",
                                                   style: TextStyle(
                                                     fontSize: 16,
-                                                    fontWeight:
-                                                    FontWeight.bold,
+                                                    fontWeight: FontWeight.bold,
                                                     color: Colors.black,
                                                   ),
                                                 ),
                                                 Text(
-                                                "₹ ${(total - amountPaid).toStringAsFixed(2)}",
+                                                  "₹ ${(total - amountPaid).toStringAsFixed(2)}",
                                                   style: TextStyle(
                                                     fontSize: 16,
-                                                    fontWeight:
-                                                    FontWeight.bold,
+                                                    fontWeight: FontWeight.bold,
                                                     color: Colors.black,
                                                   ),
                                                 ),
@@ -777,13 +819,15 @@ class _CreateInvoiceState extends State<CreateInvoice> {
                                                   fillColor: secondary2Color,
                                                   filled: true,
                                                   contentPadding:
-                                                      const EdgeInsets.symmetric(
+                                                      const EdgeInsets
+                                                          .symmetric(
                                                           vertical: 16),
                                                   border:
                                                       const OutlineInputBorder(
                                                     borderRadius:
                                                         BorderRadius.all(
-                                                            Radius.circular(10)),
+                                                            Radius.circular(
+                                                                10)),
                                                     borderSide: BorderSide.none,
                                                   ),
                                                   labelText: 'Paid Amt',
@@ -791,7 +835,8 @@ class _CreateInvoiceState extends State<CreateInvoice> {
                                                 onChanged: (value) {
                                                   setState(() {
                                                     amountPaid =
-                                                        double.tryParse(value) ??
+                                                        double.tryParse(
+                                                                value) ??
                                                             0.0;
                                                     _calculateTotals();
                                                   });
@@ -958,24 +1003,31 @@ class _CreateInvoiceState extends State<CreateInvoice> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           if (_formKey.currentState!.validate()) {
-            _submitOrder();
-            showDialog(
-              context: context,
-              builder: (context) => PrinterSettingsDialog(
+            _submitOrder(
                 subtotal: subtotal,
                 discount: discount,
                 tax: taxAmount,
-                balance: total-amountPaid,
+                balance: total - amountPaid,
+                invoiceItems: invoiceItems,
+                name: widget.name,
+                address: widget.address,
+                phone: widget.phone);
+            showDialog(
+              context: context,
+              builder: (context) => PrinterSettingsDialog(
+                amountPaid: amountPaid,
+                subtotal: subtotal,
+                discount: discount,
+                tax: taxAmount,
+                balance: total - amountPaid,
                 invoiceItems: invoiceItems,
                 name: widget.name,
                 address: widget.address,
                 phone: widget.phone,
               ),
             ).then((_) => setState(() {}));
-
-            }
-
-          },
+          }
+        },
 
         child: Icon(Icons.save), // Use an icon, like a save icon
         backgroundColor: Colors.blue, // Optional: Customize color
