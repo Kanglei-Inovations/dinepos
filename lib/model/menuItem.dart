@@ -8,7 +8,7 @@ class MenuItem {
   final int id; // id is an int
 
   @HiveField(1)
-  final String name;
+  final String itemName;
 
   @HiveField(2)
   final double price;
@@ -39,7 +39,7 @@ class MenuItem {
 
   MenuItem({
     required this.id,
-    required this.name,
+    required this.itemName,
     required this.price,
     required this.offerPrice,
     required this.stock,
@@ -64,7 +64,7 @@ class MenuItem {
   factory MenuItem.fromJson(Map<String, dynamic> json) {
     return MenuItem(
       id: json['id'],
-      name: json['name'],
+      itemName: json['itemName'],
       price: json['price'],
       offerPrice: json['offerPrice'],
       stock: json['stock'],
@@ -80,7 +80,7 @@ class MenuItem {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name,
+      'itemName': itemName,
       'price': price,
       'offerPrice': offerPrice,
       'stock': stock,

@@ -74,7 +74,7 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
                   Consumer<MenuItemsProvider>(
                     builder: (context, menuProvider, _) {
                       final menuItems = menuProvider.menuItems.where((item) {
-                        final itemName = item.name.toLowerCase();
+                        final itemName = item.itemName.toLowerCase();
                         return itemName.contains(searchQuery.toLowerCase());
                       }).toList();
 
@@ -153,7 +153,7 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
                               SizedBox(height: 8), // Add some space between image and text
                               // Hide this column for mobile devices
                               Text(
-                                menuItem.name,
+                                menuItem.itemName,
                                 style: TextStyle(
                                   fontSize: textSize,
                                   fontWeight: FontWeight.bold,
@@ -182,7 +182,7 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
               SizedBox(width: 8), // Space between the image and name
               Expanded(
                 child: Text(
-                  menuItem.name,
+                  menuItem.itemName,
                   style: TextStyle(fontSize: 14),
                 ),
               ),
@@ -192,7 +192,7 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
         if (!Responsive.isDesktop(context))
           DataCell(
             Text(
-              menuItem.name,
+              menuItem.itemName,
               style: TextStyle(fontSize: 14),
             ),
           ),
@@ -330,7 +330,7 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
                     context: context,
                     builder: (context) => EditMenuItemDialog(
                       id: menuItem.id,
-                      name: menuItem.name,
+                      name: menuItem.itemName,
                       price: menuItem.price,
                       offerPrice: menuItem.offerPrice,
                       stock: menuItem.stock,

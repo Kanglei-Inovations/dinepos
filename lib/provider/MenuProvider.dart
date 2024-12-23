@@ -59,7 +59,7 @@ class MenuItemsProvider with ChangeNotifier {
 
 
   // Method to update a menu item
-  void updateMenuItem(int id, String name, double price, double? offerPrice, int stock, String category, String? subCategory, String? imageUrl, String? description) {
+  void updateMenuItem(int id, String itemName, double price, double? offerPrice, int stock, String category, String? subCategory, String? imageUrl, String? description) {
     final menuItemsBox = Hive.box<MenuItem>('menu_items');
 print(id);
 
@@ -67,7 +67,7 @@ print(id);
       // Create the updated menu item
       final updatedMenuItem = MenuItem(
         id: id, // id is now an int
-        name: name,
+        itemName: itemName,
         price: price,
         offerPrice: offerPrice ?? 0.0, // Handle nullable offerPrice
         stock: stock,
@@ -91,7 +91,7 @@ print(id);
           (item) => item.id == id,
       orElse: () => MenuItem(  // Returning a default MenuItem if not found
         id: 0,
-        name: 'Unknown',
+        itemName: 'Unknown',
         price: 0.0,
         offerPrice: 0.0,
         stock: 0,

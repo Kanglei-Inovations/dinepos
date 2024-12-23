@@ -262,6 +262,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.10"
+  equatable:
+    dependency: transitive
+    description:
+      name: equatable
+      sha256: "567c64b3cb4cf82397aac55f4f0cbd3ca20d77c6c03bedbc4ceaddc08904aef7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.7"
   esc_pos_utils_plus:
     dependency: transitive
     description:
@@ -310,27 +318,27 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
+  fl_chart:
+    dependency: "direct main"
+    description:
+      name: fl_chart
+      sha256: d0f0d49112f2f4b192481c16d05b6418bd7820e021e265a3c22db98acf7ed7fb
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.68.0"
   flutter:
     dependency: "direct main"
     description: flutter
     source: sdk
     version: "0.0.0"
   flutter_blue_plus:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: flutter_blue_plus
       sha256: d2ac9fac56c4b3b08eb68752380e2d45e64c61db629b70e61bb36c95cb65d431
       url: "https://pub.dev"
     source: hosted
     version: "1.34.5"
-  flutter_blue_plus_windows:
-    dependency: "direct main"
-    description:
-      name: flutter_blue_plus_windows
-      sha256: "55634f396273127f86761e6069355e4d37de619f1f345e7fcedeb51d5dfb7d7c"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.24.22"
   flutter_launcher_icons:
     dependency: "direct dev"
     description:
@@ -986,14 +994,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
-  stream_with_value:
-    dependency: transitive
-    description:
-      name: stream_with_value
-      sha256: "483d79bf604fdea5274e31207956b2f624f5f03a506cacf081b65cdfcfa647a6"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.5.0"
   string_scanner:
     dependency: transitive
     description:

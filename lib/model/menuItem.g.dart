@@ -18,7 +18,7 @@ class MenuItemAdapter extends TypeAdapter<MenuItem> {
     };
     return MenuItem(
       id: fields[0] as int,
-      name: fields[1] as String,
+      itemName: fields[1] as String,
       price: fields[2] as double,
       offerPrice: fields[3] as double,
       stock: fields[4] as int,
@@ -38,7 +38,7 @@ class MenuItemAdapter extends TypeAdapter<MenuItem> {
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.name)
+      ..write(obj.itemName)
       ..writeByte(2)
       ..write(obj.price)
       ..writeByte(3)

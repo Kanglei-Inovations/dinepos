@@ -120,7 +120,7 @@ class _MenuGridViewState extends State<MenuGridView> {
                   _buildItemImage(item.imageUrl ?? '', item.category), // Updated image with category badge
 
 
-                    Text(item.name),
+                    Text(item.itemName),
 
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,

@@ -25,7 +25,7 @@ class SettingsProvider with ChangeNotifier {
       menuItems = menuProvider.menuItems.map((item) {
         return {
           'id': item.id,
-          'name': item.name,
+          'itemName': item.itemName,
           'price': item.price,
           'offerPrice': item.offerPrice,
           'stock': item.stock,

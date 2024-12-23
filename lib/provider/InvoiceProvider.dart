@@ -36,6 +36,13 @@ class InvoiceProvider with ChangeNotifier {
     _invoiceItems = invoiceItemBox.values.toList();
     notifyListeners();
   }
+  // Fetch items for a specific invoice
+  List<InvoiceItem> getItemsForInvoice(int invoiceId) {
+    final invoiceIdStr = invoiceId.toString(); // Convert int to String
+    print(_invoiceItems.where((item) => item.invoiceId == invoiceIdStr).toList());
+    return _invoiceItems.where((item) => item.invoiceId == invoiceIdStr).toList();
+  }
+
 
   // Add an invoice to Hive box
   void addInvoice(Invoice invoice) {

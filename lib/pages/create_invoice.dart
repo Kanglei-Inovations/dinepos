@@ -79,7 +79,7 @@ class _CreateInvoiceState extends State<CreateInvoice> {
       if (existingIndex == -1) {
         invoiceItems.add(
           MenuItem(
-            name: menuItem.name,
+            itemName: menuItem.itemName,
             price: menuItem.price,
             imageUrl: menuItem.imageUrl,
             quantity: 1,
@@ -183,7 +183,7 @@ print(DateTime.now().millisecondsSinceEpoch);
         InvoiceItem invoiceItem = InvoiceItem(
           id: generateRandomTimestamp(),
           invoiceId: invoice.id.toString(), // Link to the invoice
-          itemName: menuItem.name, // Name of the item
+          itemName: menuItem.itemName, // Name of the item
           price: menuItem.price, // Price of the item
           quantity: menuItem.quantity,
           total: menuItem.price+menuItem.quantity, // Quantity of the item
@@ -227,7 +227,7 @@ print(DateTime.now().millisecondsSinceEpoch);
     final menuProvider = Provider.of<MenuItemsProvider>(context);
     final filteredMenuItems = menuProvider.menuItems
         .where((menuItem) =>
-            menuItem.name.toLowerCase().contains(searchQuery.toLowerCase()))
+            menuItem.itemName.toLowerCase().contains(searchQuery.toLowerCase()))
         .toList();
     List<InvoiceItem> invoiceItemList = invoiceItems.map((menuItem) {
       return InvoiceItem(
@@ -235,7 +235,7 @@ print(DateTime.now().millisecondsSinceEpoch);
         price: menuItem.price,
         quantity: menuItem.quantity,
         invoiceId: '',
-        itemName: menuItem.name,
+        itemName: menuItem.itemName,
         total: menuItem.price * menuItem.quantity,
       );
     }).toList();
@@ -497,7 +497,7 @@ print(DateTime.now().millisecondsSinceEpoch);
                                                                   .start,
                                                           children: [
                                                             Text(
-                                                              "(${index + 1}) ${item.name} - ${item.unitType}",
+                                                              "(${index + 1}) ${item.itemName} - ${item.unitType}",
                                                               style: TextStyle(
                                                                 fontSize: 16,
                                                                 fontWeight:
@@ -1238,7 +1238,7 @@ print(DateTime.now().millisecondsSinceEpoch);
                                                               .start,
                                                       children: [
                                                         Text(
-                                                          "(${index + 1}) ${item.name} - ${item.unitType}",
+                                                          "(${index + 1}) ${item.itemName} - ${item.unitType}",
                                                           style: TextStyle(
                                                             fontSize: 16,
                                                             fontWeight:

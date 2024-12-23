@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_thermal_printer/flutter_thermal_printer.dart';
 import 'package:flutter_thermal_printer/utils/printer.dart';
 import 'package:get/get.dart';
 import 'dart:async';
 import 'dart:developer';
-
 import '../utils/const.dart';
+
+
 class PrinterSettingsDialog extends StatefulWidget {
   final List<dynamic> invoiceItems;
   final String? name;
@@ -34,7 +34,6 @@ class PrinterSettingsDialog extends StatefulWidget {
 
 class _PrinterSettingsDialogState extends State<PrinterSettingsDialog> {
   final _flutterThermalPrinterPlugin = FlutterThermalPrinter.instance;
-
   List<Printer> printers = [];
   StreamSubscription<List<Printer>>? _devicesStreamSubscription;
 
@@ -46,37 +45,43 @@ class _PrinterSettingsDialogState extends State<PrinterSettingsDialog> {
   }
 
 
-  void startScan() async {
-    _devicesStreamSubscription?.cancel();
-    await _flutterThermalPrinterPlugin.getPrinters(connectionTypes: [
-      ConnectionType.USB,ConnectionType. BLE
-    ]);
-    _devicesStreamSubscription = _flutterThermalPrinterPlugin.devicesStream
-        .listen((List<Printer> event) {
-      log(event.map((e) => e.name).toList().toString());
-      setState(() {
-        printers = event;
-        printers.removeWhere((element) => element.name == null || element.name == ''
-          //  ||
-          // !element.name!.toLowerCase().contains('print')
-        );
-      });
-    });
-    Future.delayed(const Duration(seconds: 2), () {
-      _devicesStreamSubscription?.cancel();
-      _flutterThermalPrinterPlugin.stopScan();
-      setState(() {
-        stopScan();
-      });
 
-    });
+  void startScan() async {
+    try {
+      _devicesStreamSubscription?.cancel();
+      await _flutterThermalPrinterPlugin.getPrinters(connectionTypes: [
+        ConnectionType.USB,ConnectionType.BLE
+      ]);
+      _devicesStreamSubscription = _flutterThermalPrinterPlugin.devicesStream
+          .listen((List<Printer> event) {
+        log(event.map((e) => e.name).toList().toString());
+        setState(() {
+          printers = event;
+          printers.removeWhere((element) => element.name == null || element.name == ''
+            //  ||
+            // !element.name!.toLowerCase().contains('print')
+          );
+        });
+      });
+      Future.delayed(const Duration(seconds: 2), () {
+        _devicesStreamSubscription?.cancel();
+        _flutterThermalPrinterPlugin.stopScan();
+        setState(() {
+          stopScan();
+        });
+
+      });
+    } catch (e) {
+      print('Error during scan: $e');
+    }
+
+
+
   }
 
   stopScan() {
     _devicesStreamSubscription?.cancel();
     _flutterThermalPrinterPlugin.stopScan();
-
-
   }
 
   void getUsbDevices() async {
@@ -155,7 +160,7 @@ class _PrinterSettingsDialogState extends State<PrinterSettingsDialog> {
                       for (var item in widget.invoiceItems) {
                         // Assuming each item is a map with keys: name, price, and quantity
                         bytes += generator.text(
-                          '${serialNumber.toString()}) ${item.name}'.padRight(32) + // Item name padded to 20 characters
+                          '${serialNumber.toString()})  ${item.itemName }'.padRight(32) + // Item name padded to 20 characters
                               '${item.price.toStringAsFixed(2)}' + // Price padded to 8 characters
                               ' x ${item.quantity.toString()}' + // Quantity padded to 4 characters
                               ' =${(item.price * item.quantity).toStringAsFixed(2)}', // Total padded to 10 characters
@@ -172,8 +177,8 @@ class _PrinterSettingsDialogState extends State<PrinterSettingsDialog> {
                       bytes += generator.text('Discount: Rs${widget.discount.toStringAsFixed(2)}',
                           styles: PosStyles(align: PosAlign.right));
 
-// Tax
-                      bytes += generator.text('Tax: Rs${widget.tax.toStringAsFixed(2)}',
+// Tax "Tax :  ${(invoice.taxRate / (invoice.subtotal - invoice.discount) * 100)}%",
+                      bytes += generator.text("Tax :  ${(widget.tax / (widget.subtotal - widget.discount) * 100)}%",
                           styles: PosStyles(align: PosAlign.right));
 
 // Balance

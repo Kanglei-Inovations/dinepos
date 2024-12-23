@@ -407,7 +407,7 @@ class _AddMenuItemState extends State<AddMenuItem> {
               final randomId = Random().nextInt(100000);  // Random ID between 0 and 999999
               final newMenuItem = MenuItem(
                 id: randomId,
-                name: _nameController.text,
+                itemName: _nameController.text,
                 price: double.tryParse(_priceController.text) ?? 0.0,
                 offerPrice: double.tryParse(_offerPriceController.text) ?? 0.0,
                 stock: int.tryParse(_stockController.text) ?? 0,
